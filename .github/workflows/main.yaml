@@ -1,10 +1,7 @@
 name: Test & Release (.NET)
 
 permissions:
-  contents: write       # for publishing a GitHub release and creating release backpropagation PRs
-  issues: write         # for commenting on released issues
-  pull-requests: write  # for commenting on released pull requests and creating release backpropagation PRs
-  packages: write       # for publishing packages in repository registry
+  contents: read
 
 on:
   workflow_dispatch:
@@ -37,23 +34,43 @@ env:
 jobs:
   test:
     name: Tests
+    permissions:
+      contents: read
     uses: ./.github/workflows/_test.yaml
-    secrets: inherit
     with:
-      runner: ${{ inputs.runner || 'arkanis-runners' }}
+      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || 'arkanis-runners' }}
+
+  release-dry-run:
+    name: Release Dry Run
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: test
+    permissions:
+      contents: read
+    uses: ./.github/workflows/_release.yaml
+    with:
+      dry_run: true
+      runner: ubuntu-latest
 
   release:
     name: Release
+    if: ${{ github.event_name != 'pull_request' }}
     needs: test
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
     uses: ./.github/workflows/_release.yaml
-    secrets: inherit
+    secrets:
+      PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT }}
+      NUGET_PUBLISH_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
     with:
-      dry_run: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/ci' }}
+      dry_run: ${{ github.ref == 'refs/heads/ci' }}
       runner: ${{ inputs.runner || 'arkanis-runners' }}
 
   deploy-staging-kubernetes:
     name: Kubernetes
-    if: ${{ github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '' || inputs.deploy_staging }}
+    if: ${{ github.event_name != 'pull_request' && ((github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '') || inputs.deploy_staging) }}
     needs: release
     uses: ./.github/workflows/_deploy-kubernetes.yaml
     with:

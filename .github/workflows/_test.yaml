@@ -1,5 +1,8 @@
 name: .NET Test
 
+permissions:
+  contents: read
+
 concurrency:
   group: "${{ inputs.concurrency_group_prefix }}-${{ github.ref }}"
   cancel-in-progress: true

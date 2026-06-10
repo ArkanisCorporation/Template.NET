@@ -32,10 +32,13 @@ on:
         required: false
         type: string
         default: arkanis-runners
-#    secrets:
-#      NUGET_PUBLISH_API_KEY:
-#        required: true
-#        description: "An API key for publishing to NuGet.org"
+    secrets:
+      PR_AUTOMATION_PAT:
+        required: false
+        description: "Fine-scoped token used only to approve automated release backpropagation PRs."
+      NUGET_PUBLISH_API_KEY:
+        required: false
+        description: "API key used only when publishing packages to NuGet.org."
     outputs:
       new_version:
         description: "Newly published version"
@@ -58,6 +61,8 @@ env:
 jobs:
   release:
     runs-on: ${{ inputs.runner }}
+    env:
+      HAS_PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -153,18 +158,33 @@ jobs:
           sudo apt-get install -y -qq gh
 
       - name: Setup Version Backpropagation PR
+        id: backpropagation-pr
         if: ${{ ! inputs.dry_run && steps.semantic-release.outputs.new_release_version && github.ref == 'refs/heads/release/stable' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_URL=$(gh pr new --base ${{ github.event.repository.default_branch }} --head ${{ github.ref_name }} --title "Backpropagate release version to default branch: ${{ steps.semantic-release.outputs.new_release_version }}" --body "This is an automated post-release action." --label ci --label automated)
           PR_NUMBER=${PR_URL##*/}
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           gh pr merge --merge --auto ${PR_URL}
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.PR_AUTOMATION_PAT }}" \
+
+      - name: Approve Version Backpropagation PR
+        if: ${{ ! inputs.dry_run && steps.semantic-release.outputs.new_release_version && github.ref == 'refs/heads/release/stable' && env.HAS_PR_AUTOMATION_PAT == 'true' }}
+        env:
+          PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT }}
+          PR_NUMBER: ${{ steps.backpropagation-pr.outputs.pr_number }}
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Authorization: token ${PR_AUTOMATION_PAT}" \
             -H "Accept: application/vnd.github+json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" \
             -d '{"event":"APPROVE"}'
+
+      - name: Report skipped backpropagation approval
+        if: ${{ ! inputs.dry_run && steps.semantic-release.outputs.new_release_version && github.ref == 'refs/heads/release/stable' && env.HAS_PR_AUTOMATION_PAT != 'true' }}
+        run: |
+          echo "PR_AUTOMATION_PAT is not configured; created the backpropagation PR and enabled automerge without auto-approval."
+          echo "PR_AUTOMATION_PAT is not configured; auto-approval was skipped." >> "$GITHUB_STEP_SUMMARY"
 
     outputs:
       new_version: ${{ steps.semantic-release.outputs.new_release_version }}
