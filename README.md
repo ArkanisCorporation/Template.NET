@@ -117,6 +117,8 @@ Do not store real secrets in committed files.
 Use `.act/secrets` or secure interactive secret prompts for local-only secrets.
 Release and Kubernetes deployment workflows are not full local targets because they depend on GitHub release state, GHCR credentials, Kubernetes credentials, GitHub environments, and runner behavior that `act` does not completely emulate.
 See [GitHub Actions](docs/github-actions.md) for the workflow map, runner trust rules, token permissions, release behavior, deployment behavior, and repository settings checklist.
+Workflow changes are checked by `pipeline-quality.yaml` with actionlint.
+Run `go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12`, add `$(go env GOPATH)/bin` to `PATH`, and then run `actionlint` for the same validation locally.
 
 ### `dotnet-setversion`
 

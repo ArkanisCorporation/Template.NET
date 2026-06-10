@@ -1,0 +1,46 @@
+name: Workflow Quality
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ main, release/*, ci ]
+    paths:
+      - ".github/actions/**"
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - "renovate.jsonc"
+      - "release.config.mjs"
+      - "scripts/semantic-release/**"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - ".github/actions/**"
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - "renovate.jsonc"
+      - "release.config.mjs"
+      - "scripts/semantic-release/**"
+
+jobs:
+  actionlint:
+    name: Workflow Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Run actionlint
+        run: actionlint -color
