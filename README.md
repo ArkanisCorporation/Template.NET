@@ -116,6 +116,7 @@ The wrapper scripts in [`scripts/act`](scripts/act) keep the human-facing comman
 Do not store real secrets in committed files.
 Use `.act/secrets` or secure interactive secret prompts for local-only secrets.
 Release and Kubernetes deployment workflows are not full local targets because they depend on GitHub release state, GHCR credentials, Kubernetes credentials, GitHub environments, and runner behavior that `act` does not completely emulate.
+See [GitHub Actions](docs/github-actions.md) for the workflow map, runner trust rules, token permissions, release behavior, deployment behavior, and repository settings checklist.
 
 ### `dotnet-setversion`
 

@@ -13,3 +13,10 @@ If no documentation update is needed, say so in the final handoff.
 
 For durable contracts on public types, members, or model invariants, add XML docs there: `<summary>` for meaning, `<remarks>` for caveats, constraints, lifecycle, and side effects, and `<exception>` for thrown exceptions.
 Keep `AGENTS.md` focused on workflow, repo conventions, cross-file patterns, design expectations, and pointers to code owning broader contracts.
+
+## GitHub Actions
+
+Keep reusable workflow files directly under `.github/workflows`.
+GitHub does not support reusable workflow files in subdirectories.
+
+Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated workflow operations document when local validation commands, runner expectations, secrets, or deployment behavior change.
