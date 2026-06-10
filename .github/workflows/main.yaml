@@ -1,7 +1,10 @@
 name: Test & Release (.NET)
 
 permissions:
-  contents: read
+  contents: write       # for publishing a GitHub release and creating release backpropagation PRs
+  issues: write         # for commenting on released issues
+  pull-requests: write  # for commenting on released pull requests and creating release backpropagation PRs
+  packages: write       # for publishing packages in repository registry
 
 on:
   workflow_dispatch:
@@ -55,11 +58,6 @@ jobs:
     name: Release
     if: ${{ github.event_name != 'pull_request' }}
     needs: test
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      packages: write
     uses: ./.github/workflows/_release.yaml
     secrets:
       PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT }}
