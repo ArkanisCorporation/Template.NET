@@ -77,4 +77,6 @@ jobs:
       environment_name: staging
       aspire_environment: Kubernetes-Staging
       kubernetes_namespace: citizenid-staging
+      kubectl_version: v1.36.1
+      helm_version: v3.21.0
       image_tag: ${{ needs.release.outputs.new_tag }}

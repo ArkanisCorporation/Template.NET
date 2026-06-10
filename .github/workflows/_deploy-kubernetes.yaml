@@ -23,6 +23,16 @@ on:
         description: "Kubernetes namespace that will receive the Helm release"
         required: true
         type: string
+      kubectl_version:
+        description: "kubectl version used for deployment"
+        required: false
+        type: string
+        default: "v1.36.1"
+      helm_version:
+        description: "Helm version used for deployment"
+        required: false
+        type: string
+        default: "v3.21.0"
       image_tag:
         description: "Optional image tag override for Kubernetes:Images:Tag"
         required: false
@@ -36,13 +46,19 @@ jobs:
   deploy:
     name: Deploy to ${{ inputs.environment_name }}
     runs-on: arkanis-runners
+    timeout-minutes: 45
     environment: ${{ inputs.environment_name }}
     concurrency:
       group: deploy-kubernetes-${{ inputs.environment_name }}
       cancel-in-progress: true
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup .NET workspace
         id: dotnet
@@ -51,40 +67,40 @@ jobs:
           restore-solution: "false"
 
       - uses: azure/setup-kubectl@v5.1.0
-        # with:
-        #   version: '' # default is latest stable
+        with:
+          version: ${{ inputs.kubectl_version }}
 
       - uses: azure/setup-helm@v5.0.0
-        # with:
-        #   version: '' # default is latest stable
+        with:
+          version: ${{ inputs.helm_version }}
 
       - name: Ensure Kubernetes namespace exists
+        env:
+          KUBERNETES_NAMESPACE: ${{ inputs.kubernetes_namespace }}
         run: |
-          kubectl create namespace "${{ inputs.kubernetes_namespace }}" --dry-run=client -o yaml > namespace.yaml
+          if [[ ! "${KUBERNETES_NAMESPACE}" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ ]]; then
+            echo "Invalid Kubernetes namespace: ${KUBERNETES_NAMESPACE}" >&2
+            exit 1
+          fi
+
+          kubectl create namespace "${KUBERNETES_NAMESPACE}" --dry-run=client -o yaml > namespace.yaml
           kubectl apply -f namespace.yaml
 
       - name: Aspire Deploy
-        if: ${{ inputs.image_tag == '' }}
-        run: >
-          dotnet tool run aspire -- deploy
-          --apphost src/CitizenId.Host.Aspire/CitizenId.Host.Aspire.csproj
-          --output-path artifacts/k8s/${{ inputs.environment_name }}
-          --environment ${{ inputs.aspire_environment }}
-          --non-interactive
-          --pipeline-log-level debug
-          --include-exception-details
-          --debug
-
-      - name: Aspire Deploy with image tag override
-        if: ${{ inputs.image_tag != '' }}
         env:
-          Kubernetes__Images__Tag: ${{ inputs.image_tag }}
-        run: >
-          dotnet tool run aspire -- deploy
-          --apphost src/CitizenId.Host.Aspire/CitizenId.Host.Aspire.csproj
-          --output-path artifacts/k8s/${{ inputs.environment_name }}
-          --environment ${{ inputs.aspire_environment }}
-          --non-interactive
-          --pipeline-log-level debug
-          --include-exception-details
-          --debug
+          ASPIRE_ENVIRONMENT: ${{ inputs.aspire_environment }}
+          ENVIRONMENT_NAME: ${{ inputs.environment_name }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          if [[ -n "$IMAGE_TAG" ]]; then
+            export Kubernetes__Images__Tag="$IMAGE_TAG"
+          fi
+
+          dotnet tool run aspire -- deploy \
+            --apphost src/CitizenId.Host.Aspire/CitizenId.Host.Aspire.csproj \
+            --output-path "artifacts/k8s/${ENVIRONMENT_NAME}" \
+            --environment "${ASPIRE_ENVIRONMENT}" \
+            --non-interactive \
+            --pipeline-log-level debug \
+            --include-exception-details \
+            --debug
