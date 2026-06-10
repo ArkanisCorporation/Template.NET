@@ -51,6 +51,17 @@
             "automerge": false
         },
         {
+            "matchDatasources": [
+                "github-releases"
+            ],
+            "matchDepNames": [
+                "kubernetes/kubernetes",
+                "helm/helm"
+            ],
+            "groupName": "Kubernetes deployment tools",
+            "automerge": false
+        },
+        {
             "matchUpdateTypes": [
                 "major"
             ],
@@ -78,6 +89,30 @@
                 "(?<depName>@semantic-release/[a-z-]+)@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
             ],
             "datasourceTemplate": "npm"
+        },
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^\\.github/workflows/.*\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "kubectl_version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)",
+                "kubectl_version:[\\s\\S]*?default:\\s*\"?(?<currentValue>v\\d+\\.\\d+\\.\\d+)\"?"
+            ],
+            "depNameTemplate": "kubernetes/kubernetes",
+            "datasourceTemplate": "github-releases"
+        },
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^\\.github/workflows/.*\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "helm_version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)",
+                "helm_version:[\\s\\S]*?default:\\s*\"?(?<currentValue>v\\d+\\.\\d+\\.\\d+)\"?"
+            ],
+            "depNameTemplate": "helm/helm",
+            "datasourceTemplate": "github-releases"
         }
     ]
 }
