@@ -42,7 +42,7 @@ jobs:
       aspire_environment: Kubernetes-Staging
       kubernetes_namespace: citizenid-staging
       kubectl_version: v1.36.1
-      helm_version: v3.21.0
+      helm_version: v4.2.0
       image_tag: ${{ inputs.image_tag }}
 
   deploy-production:
@@ -54,5 +54,5 @@ jobs:
       aspire_environment: Kubernetes-Production
       kubernetes_namespace: citizenid-production
       kubectl_version: v1.36.1
-      helm_version: v3.21.0
+      helm_version: v4.2.0
       image_tag: ${{ inputs.image_tag }}

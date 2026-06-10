@@ -32,7 +32,7 @@ on:
         description: "Helm version used for deployment"
         required: false
         type: string
-        default: "v3.21.0"
+        default: "v4.2.0"
       image_tag:
         description: "Optional image tag override for Kubernetes:Images:Tag"
         required: false

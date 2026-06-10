@@ -39,7 +39,7 @@ on:
         description: "Helm version"
         required: false
         type: string
-        default: v3.21.0
+        default: v4.2.0
     secrets:
       PR_AUTOMATION_PAT:
         required: false
