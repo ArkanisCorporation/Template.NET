@@ -3,12 +3,24 @@
    "tasks": [
        {
            "name": "prepare-shell-scripts",
+           "group": "pre-commit",
            "command": "bash",
            "args": [ "scripts/prepare-shell-scripts.sh" ],
            "windows": {
                "command": "powershell",
                "args": [ "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/prepare-shell-scripts.ps1" ]
            }
+       },
+       {
+           "name": "dotnet-format-check",
+           "group": "pre-commit",
+           "command": "dotnet",
+           "args": [ "format", "Template.slnx", "--verify-no-changes", "--verbosity", "diagnostic", "--no-restore" ]
+       },
+       {
+           "name": "dotnet-format",
+           "command": "dotnet",
+           "args": [ "format", "Template.slnx", "--verbosity", "diagnostic", "--no-restore" ]
        }
    ]
 }

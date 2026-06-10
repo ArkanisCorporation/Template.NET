@@ -55,16 +55,31 @@ It updates staged `*.sh` files to be executable in the Git index and rejects sta
 dotnet husky run --name prepare-shell-scripts
 ```
 
+Run the configured .NET format task manually.
+It formats the solution with `dotnet format Template.slnx --verbosity diagnostic --no-restore`.
+
+```powershell
+dotnet husky run --name dotnet-format
+```
+
+Run the configured .NET format verification task manually.
+It checks the same solution format rules without changing files.
+
+```powershell
+dotnet husky run --name dotnet-format-check
+```
+
 Install Husky hooks in a clone when you want Git to run configured hook commands automatically.
 
 ```powershell
 dotnet husky install
 ```
 
-Add the existing task to a pre-commit hook when a downstream project wants it to run before each commit.
+Add the configured pre-commit task group to a pre-commit hook when a downstream project wants it to run before each commit.
+The pre-commit group prepares staged shell scripts and verifies .NET formatting without changing files.
 
 ```powershell
-dotnet husky add pre-commit -c "dotnet husky run --name prepare-shell-scripts"
+dotnet husky add pre-commit -c "dotnet husky run --group pre-commit"
 git add .husky/pre-commit .husky/task-runner.json
 ```
 
