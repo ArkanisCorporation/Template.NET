@@ -1,0 +1,54 @@
+name: Deploy to Kubernetes (.NET)
+
+permissions:
+  contents: read
+  packages: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: "Environment to deploy"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      image_tag:
+        description: "Optional image tag override; leave blank to use appsettings"
+        required: false
+        type: string
+        default: ""
+
+  workflow_call:
+    inputs:
+      environment_name:
+        description: "Environment to deploy"
+        required: true
+        type: string
+      image_tag:
+        description: "Optional image tag override; leave blank to use appsettings"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  deploy-staging:
+    name: Staging
+    if: ${{ inputs.environment_name == 'staging' }}
+    uses: ./.github/workflows/_deploy-kubernetes.yaml
+    with:
+      environment_name: staging
+      aspire_environment: Kubernetes-Staging
+      kubernetes_namespace: citizenid-staging
+      image_tag: ${{ inputs.image_tag }}
+
+  deploy-production:
+    name: Production
+    if: ${{ inputs.environment_name == 'production' }}
+    uses: ./.github/workflows/_deploy-kubernetes.yaml
+    with:
+      environment_name: production
+      aspire_environment: Kubernetes-Production
+      kubernetes_namespace: citizenid-production
+      image_tag: ${{ inputs.image_tag }}

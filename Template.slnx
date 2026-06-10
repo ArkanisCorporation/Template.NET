@@ -9,6 +9,7 @@
     <File Path="global.json" />
     <File Path="renovate.jsonc" />
   </Folder>
+  <Folder Name="/scripts/" />
   <Folder Name="/src/">
     <Project Path="src/Template/Template.csproj" />
   </Folder>

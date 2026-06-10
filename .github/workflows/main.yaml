@@ -1,0 +1,63 @@
+name: Test & Release (.NET)
+
+permissions:
+  contents: write       # for publishing a GitHub release and creating release backpropagation PRs
+  issues: write         # for commenting on released issues
+  pull-requests: write  # for commenting on released pull requests and creating release backpropagation PRs
+  packages: write       # for publishing packages in repository registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_staging:
+        description: "Force deploy to Staging?"
+        type: boolean
+      runner:
+        description: "Runner pool (override to ubuntu-latest if self-hosted is broken)"
+        type: choice
+        options:
+          - arkanis-runners
+          - ubuntu-latest
+        default: arkanis-runners
+
+  # You can use the GitHub API to trigger a webhook event called repository_dispatch
+  # when you want to trigger a workflow for activity that happens outside of GitHub.
+  repository_dispatch:
+
+  push:
+    branches: [ main, release/*, ci ]
+
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Store NuGet packages in the workspace so the cache stays focused on restored dependencies.
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  test:
+    name: Tests
+    uses: ./.github/workflows/_test.yaml
+    secrets: inherit
+    with:
+      runner: ${{ inputs.runner || 'arkanis-runners' }}
+
+  release:
+    name: Release
+    needs: test
+    uses: ./.github/workflows/_release.yaml
+    secrets: inherit
+    with:
+      dry_run: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/ci' }}
+      runner: ${{ inputs.runner || 'arkanis-runners' }}
+
+  deploy-staging-kubernetes:
+    name: Kubernetes
+    if: ${{ github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '' || inputs.deploy_staging }}
+    needs: release
+    uses: ./.github/workflows/_deploy-kubernetes.yaml
+    with:
+      environment_name: staging
+      aspire_environment: Kubernetes-Staging
+      kubernetes_namespace: citizenid-staging
+      image_tag: ${{ needs.release.outputs.new_tag }}

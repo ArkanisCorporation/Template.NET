@@ -348,3 +348,9 @@ fabric.properties
 .env
 appsettings.local.json
 docker-compose.yaml
+
+# Local act files
+.act/secrets
+.act/vars
+.act/cache/
+.act/*.log

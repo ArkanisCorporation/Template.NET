@@ -1,0 +1,72 @@
+name: .NET Test
+
+concurrency:
+  group: "${{ inputs.concurrency_group_prefix }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: "Runner pool"
+        required: false
+        type: string
+        default: arkanis-runners
+      test_filter:
+        description: "Optional dotnet test filter expression"
+        required: false
+        type: string
+        default: ""
+      concurrency_group_prefix:
+        description: "Concurrency group prefix"
+        required: false
+        type: string
+        default: test
+
+env:
+  # Store NuGet packages in the workspace so the cache stays focused on restored dependencies.
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      -   name: Git checkout
+          uses: actions/checkout@v6
+
+      -   name: Setup .NET
+          id: setup-dotnet
+          uses: actions/setup-dotnet@v5
+          with:
+            global-json-file: global.json
+
+      -   name: Cache NuGet packages
+          id: nuget-cache
+          uses: runs-on/cache@v5
+          with:
+            path: ${{ env.NUGET_PACKAGES }}
+            key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '.config/dotnet-tools.json') }}
+            restore-keys: |
+              ${{ runner.os }}-nuget-
+
+      -   run: echo "Using .NET ${{ steps.setup-dotnet.outputs.dotnet-version }}"
+
+      -   run: echo "Cache hit - ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}"
+
+      -   name: Restore dependencies
+          # .NET tool restore fails with a fresh .NET home directory: https://github.com/dotnet/sdk/issues/53783
+          run: dotnet tool restore || (echo "First restore failed; retrying" && dotnet tool restore)
+
+      -   name: Restore dependencies
+          run: dotnet restore --locked-mode
+
+      -   name: Build solution
+          run: dotnet build --no-restore
+
+      -   name: Test solution
+          if: inputs.test_filter == ''
+          run: dotnet test --no-build --verbosity normal
+
+      -   name: Test filtered solution
+          if: inputs.test_filter != ''
+          run: dotnet test --no-build --verbosity normal --filter "${{ inputs.test_filter }}"

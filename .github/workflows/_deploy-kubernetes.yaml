@@ -1,0 +1,107 @@
+name: .NET Deployment (Kubernetes)
+
+concurrency:
+  group: "deploy-kubernetes-${{ inputs.environment_name }}"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+on:
+  workflow_call:
+    inputs:
+      environment_name:
+        description: "GitHub environment name that will be deployed to"
+        required: true
+        type: string
+      aspire_environment:
+        description: "Aspire environment name used for deployment"
+        required: true
+        type: string
+      kubernetes_namespace:
+        description: "Kubernetes namespace that will receive the Helm release"
+        required: true
+        type: string
+      image_tag:
+        description: "Optional image tag override for Kubernetes:Images:Tag"
+        required: false
+        type: string
+        default: ""
+
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment_name }}
+    runs-on: arkanis-runners
+    environment: ${{ inputs.environment_name }}
+    concurrency:
+      group: deploy-kubernetes-${{ inputs.environment_name }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        id: nuget-cache
+        uses: runs-on/cache@v5
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '.config/dotnet-tools.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - run: echo "Using .NET ${{ steps.setup-dotnet.outputs.dotnet-version }}"
+
+      - run: echo "Cache hit - ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}"
+
+      - name: Restore .NET tools
+        # .NET tool restore fails with a fresh .NET home directory: https://github.com/dotnet/sdk/issues/53783
+        run: dotnet tool restore || (echo "First restore failed; retrying" && dotnet tool restore)
+
+      - uses: azure/setup-kubectl@v5.1.0
+        # with:
+        #   version: '' # default is latest stable
+
+      - uses: azure/setup-helm@v5.0.0
+        # with:
+        #   version: '' # default is latest stable
+
+      - name: Ensure Kubernetes namespace exists
+        run: |
+          kubectl create namespace "${{ inputs.kubernetes_namespace }}" --dry-run=client -o yaml > namespace.yaml
+          kubectl apply -f namespace.yaml
+
+      - name: Aspire Deploy
+        if: ${{ inputs.image_tag == '' }}
+        run: >
+          dotnet tool run aspire -- deploy
+          --apphost src/CitizenId.Host.Aspire/CitizenId.Host.Aspire.csproj
+          --output-path artifacts/k8s/${{ inputs.environment_name }}
+          --environment ${{ inputs.aspire_environment }}
+          --non-interactive
+          --pipeline-log-level debug
+          --include-exception-details
+          --debug
+
+      - name: Aspire Deploy with image tag override
+        if: ${{ inputs.image_tag != '' }}
+        env:
+          Kubernetes__Images__Tag: ${{ inputs.image_tag }}
+        run: >
+          dotnet tool run aspire -- deploy
+          --apphost src/CitizenId.Host.Aspire/CitizenId.Host.Aspire.csproj
+          --output-path artifacts/k8s/${{ inputs.environment_name }}
+          --environment ${{ inputs.aspire_environment }}
+          --non-interactive
+          --pipeline-log-level debug
+          --include-exception-details
+          --debug
