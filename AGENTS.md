@@ -25,3 +25,8 @@ Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated
 
 Keep repository text files on LF line endings.
 `.editorconfig` defines the editor expectation, and `.gitattributes` keeps fresh Git checkouts consistent even when a developer has `core.autocrlf=true`.
+
+## Shell Script Permissions
+
+Run `dotnet husky run --name update-shell-script-permissions` when tracked `*.sh` files need their Git executable bit repaired across the repository.
+Keep the pre-commit shell preparation task scoped to staged `*.sh` files.

@@ -55,6 +55,13 @@ It updates staged `*.sh` files to be executable in the Git index and rejects sta
 dotnet husky run --name prepare-shell-scripts
 ```
 
+Run the repository-wide shell-script permission task manually when existing tracked shell scripts need their Git executable bit repaired.
+It updates every tracked `*.sh` file in the Git index, regardless of staged state.
+
+```powershell
+dotnet husky run --name update-shell-script-permissions
+```
+
 Run the configured .NET format task manually.
 It formats the solution with `dotnet format Template.slnx --verbosity diagnostic --no-restore`.
 

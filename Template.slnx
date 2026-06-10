@@ -19,6 +19,8 @@
     <File Path="scripts/act/test-pr.sh" />
     <File Path="scripts/prepare-shell-scripts.ps1" />
     <File Path="scripts/prepare-shell-scripts.sh" />
+    <File Path="scripts/update-shell-script-permissions.ps1" />
+    <File Path="scripts/update-shell-script-permissions.sh" />
     <File Path="scripts/semantic-release/100-verify/101-verify_server.sh" />
     <File Path="scripts/semantic-release/100-verify/102-verify_nuget.sh" />
     <File Path="scripts/semantic-release/100-verify/103-verify_helm.sh" />
