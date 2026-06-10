@@ -41,7 +41,7 @@ jobs:
       runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || 'arkanis-runners' }}
 
   release-dry-run:
-    name: Release Dry Run
+    name: Release (Dry Run)
     if: ${{ github.event_name == 'pull_request' }}
     needs: test
     permissions:
