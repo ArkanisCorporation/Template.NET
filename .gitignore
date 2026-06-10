@@ -352,5 +352,6 @@ docker-compose.yaml
 # Local act files
 .act/secrets
 .act/vars
+.act/artifacts
 .act/cache/
 .act/*.log

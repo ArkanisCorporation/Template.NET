@@ -14,7 +14,10 @@ else
     exit 127
 fi
 
+mkdir -p .act/artifacts
+
 "${act_bin}" pull_request \
     -W .github/workflows/main.yaml \
     -j test \
+    --artifact-server-path .act/artifacts \
     -e .act/events/pull_request.json

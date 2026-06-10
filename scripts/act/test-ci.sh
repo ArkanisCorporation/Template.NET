@@ -14,7 +14,10 @@ else
     exit 127
 fi
 
+mkdir -p .act/artifacts
+
 "${act_bin}" push \
     -W .github/workflows/main.yaml \
     -j test \
+    --artifact-server-path .act/artifacts \
     -e .act/events/push-ci.json

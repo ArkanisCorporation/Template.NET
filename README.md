@@ -113,6 +113,7 @@ The repository `.actrc` contains only low-level runner defaults.
 It maps `arkanis-runners` to an `act`-compatible Ubuntu runner image, not to the plain `ubuntu:latest` Docker image.
 The plain Docker image does not include the Node runtime required by JavaScript actions.
 The wrapper scripts in [`scripts/act`](scripts/act) keep the human-facing commands named and readable.
+They store local workflow artifacts under `.act/artifacts`.
 Do not store real secrets in committed files.
 Use `.act/secrets` or secure interactive secret prompts for local-only secrets.
 Release and Kubernetes deployment workflows are not full local targets because they depend on GitHub release state, GHCR credentials, Kubernetes credentials, GitHub environments, and runner behavior that `act` does not completely emulate.
