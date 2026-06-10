@@ -48,9 +48,6 @@ jobs:
     runs-on: arkanis-runners
     timeout-minutes: 45
     environment: ${{ inputs.environment_name }}
-    concurrency:
-      group: deploy-kubernetes-${{ inputs.environment_name }}
-      cancel-in-progress: true
     defaults:
       run:
         shell: bash
