@@ -1,0 +1,14 @@
+{
+   "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+   "tasks": [
+       {
+           "name": "prepare-shell-scripts",
+           "command": "bash",
+           "args": [ "scripts/prepare-shell-scripts.sh" ],
+           "windows": {
+               "command": "powershell",
+               "args": [ "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/prepare-shell-scripts.ps1" ]
+           }
+       }
+   ]
+}
