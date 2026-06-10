@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: ""
+      coverage_custom_settings:
+        description: "Optional ReportGenerator customSettings, such as minimumCoverageThresholds:lineCoverage=60;minimumCoverageThresholds:branchCoverage=50"
+        required: false
+        type: string
+        default: ""
       concurrency_group_prefix:
         description: "Concurrency group prefix"
         required: false
@@ -29,11 +34,13 @@ on:
 env:
   # Store NuGet packages in the workspace so the cache stays focused on restored dependencies.
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  SOLUTION_FILE: Template.slnx
 
 jobs:
-  test:
+  format:
+    name: Format
     runs-on: ${{ inputs.runner }}
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash
@@ -44,27 +51,125 @@ jobs:
             persist-credentials: false
 
       -   name: Setup .NET workspace
-          id: dotnet
+          uses: ./.github/actions/setup-dotnet-workspace
+
+      -   name: Verify formatting
+          run: dotnet format ${{ env.SOLUTION_FILE }} --verify-no-changes --verbosity diagnostic --no-restore
+
+  complexity:
+    name: Complexity
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      -   name: Git checkout
+          uses: actions/checkout@v6
+          with:
+            persist-credentials: false
+
+      -   name: Setup .NET workspace
+          uses: ./.github/actions/setup-dotnet-workspace
+
+      -   name: Build with complexity analyzers
+          run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore --verbosity normal -warnaserror:CA1502 -warnaserror:CA1509
+
+  test:
+    name: Tests
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      -   name: Git checkout
+          uses: actions/checkout@v6
+          with:
+            persist-credentials: false
+
+      -   name: Setup .NET workspace
           uses: ./.github/actions/setup-dotnet-workspace
 
       -   name: Build solution
-          run: dotnet build --no-restore
+          run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore
 
       -   name: Test solution
           if: inputs.test_filter == ''
-          run: dotnet test --no-build --verbosity normal --logger "trx;LogFilePrefix=test-results" --results-directory artifacts/test-results
+          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal
 
       -   name: Test filtered solution
           if: inputs.test_filter != ''
-          env:
-            DOTNET_TEST_FILTER: ${{ inputs.test_filter }}
-          run: dotnet test --no-build --verbosity normal --logger "trx;LogFilePrefix=test-results" --results-directory artifacts/test-results --filter "$DOTNET_TEST_FILTER"
+          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal --filter "${{ inputs.test_filter }}"
 
-      -   name: Upload test results
-          if: ${{ always() }}
-          uses: actions/upload-artifact@v5
+  coverage:
+    name: Coverage
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      -   name: Git checkout
+          uses: actions/checkout@v6
           with:
-            name: test-results-${{ github.run_id }}-${{ github.run_attempt }}
-            path: artifacts/test-results
+            persist-credentials: false
+
+      -   name: Setup .NET workspace
+          uses: ./.github/actions/setup-dotnet-workspace
+
+      -   name: Build solution
+          run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore
+
+      -   name: Test solution with coverage
+          if: inputs.test_filter == ''
+          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal --logger "trx;LogFilePrefix=test-results" --collect:"XPlat Code Coverage" --results-directory artifacts/coverage/raw
+
+      -   name: Test filtered solution with coverage
+          if: inputs.test_filter != ''
+          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal --filter "${{ inputs.test_filter }}" --logger "trx;LogFilePrefix=test-results" --collect:"XPlat Code Coverage" --results-directory artifacts/coverage/raw
+
+      -   name: Verify coverage files
+          run: |
+            coverage_count="$(find artifacts/coverage/raw -type f -name 'coverage.cobertura.xml' | wc -l)"
+            if [ "${coverage_count}" -eq 0 ]; then
+              echo "No coverage.cobertura.xml files were generated." >&2
+              exit 1
+            fi
+            find artifacts/coverage/raw -type f -name 'coverage.cobertura.xml' -print
+
+      -   name: Generate coverage report
+          if: inputs.coverage_custom_settings == ''
+          uses: danielpalme/ReportGenerator-GitHub-Action@5.5.10
+          with:
+            reports: artifacts/coverage/raw/**/coverage.cobertura.xml
+            targetdir: artifacts/coverage/report
+            reporttypes: HtmlInline;Cobertura;MarkdownSummaryGithub;TextSummary
+            assemblyfilters: +Arkanis.Template*;-*.Tests
+            tag: ${{ github.run_number }}_${{ github.run_id }}
+
+      -   name: Generate coverage report with custom settings
+          if: inputs.coverage_custom_settings != ''
+          uses: danielpalme/ReportGenerator-GitHub-Action@5.5.10
+          with:
+            reports: artifacts/coverage/raw/**/coverage.cobertura.xml
+            targetdir: artifacts/coverage/report
+            reporttypes: HtmlInline;Cobertura;MarkdownSummaryGithub;TextSummary
+            assemblyfilters: +Arkanis.Template*;-*.Tests
+            tag: ${{ github.run_number }}_${{ github.run_id }}
+            customSettings: ${{ inputs.coverage_custom_settings }}
+
+      -   name: Publish coverage summary
+          run: cat artifacts/coverage/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      -   name: Upload coverage artifacts
+          if: ${{ always() }}
+          uses: actions/upload-artifact@v7
+          with:
+            name: dotnet-coverage
+            path: |
+              artifacts/coverage/raw/**/*.trx
+              artifacts/coverage/raw/**/coverage.cobertura.xml
+              artifacts/coverage/report/**
             if-no-files-found: warn
             retention-days: 14
