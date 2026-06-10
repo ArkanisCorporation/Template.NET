@@ -37,31 +37,9 @@ jobs:
       -   name: Git checkout
           uses: actions/checkout@v6
 
-      -   name: Setup .NET
-          id: setup-dotnet
-          uses: actions/setup-dotnet@v5
-          with:
-            global-json-file: global.json
-
-      -   name: Cache NuGet packages
-          id: nuget-cache
-          uses: runs-on/cache@v5
-          with:
-            path: ${{ env.NUGET_PACKAGES }}
-            key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '.config/dotnet-tools.json') }}
-            restore-keys: |
-              ${{ runner.os }}-nuget-
-
-      -   run: echo "Using .NET ${{ steps.setup-dotnet.outputs.dotnet-version }}"
-
-      -   run: echo "Cache hit - ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}"
-
-      -   name: Restore dependencies
-          # .NET tool restore fails with a fresh .NET home directory: https://github.com/dotnet/sdk/issues/53783
-          run: dotnet tool restore || (echo "First restore failed; retrying" && dotnet tool restore)
-
-      -   name: Restore dependencies
-          run: dotnet restore --locked-mode
+      -   name: Setup .NET workspace
+          id: dotnet
+          uses: ./.github/actions/setup-dotnet-workspace
 
       -   name: Build solution
           run: dotnet build --no-restore

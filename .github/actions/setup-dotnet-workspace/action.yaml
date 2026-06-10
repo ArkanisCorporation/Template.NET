@@ -1,0 +1,81 @@
+name: Setup .NET workspace
+description: Set up the pinned .NET SDK, restore cached NuGet packages, and restore tools and dependencies.
+
+inputs:
+  nuget-packages:
+    description: NuGet package cache path.
+    required: false
+    default: .nuget/packages
+  restore-tools:
+    description: Restore local .NET tools.
+    required: false
+    default: "true"
+  restore-solution:
+    description: Restore solution dependencies.
+    required: false
+    default: "true"
+  restore-command:
+    description: Command used to restore solution dependencies.
+    required: false
+    default: dotnet restore --locked-mode
+
+outputs:
+  dotnet-version:
+    description: Installed .NET SDK version.
+    value: ${{ steps.setup-dotnet.outputs.dotnet-version }}
+  cache-hit:
+    description: Whether the NuGet package cache was restored from an exact key match.
+    value: ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve NuGet package path
+      id: nuget-packages
+      shell: bash
+      run: |
+        nuget_packages='${{ inputs.nuget-packages }}'
+        case "$nuget_packages" in
+          /*|[A-Za-z]:/*)
+            resolved_path="$nuget_packages"
+            ;;
+          *)
+            resolved_path="${GITHUB_WORKSPACE}/${nuget_packages}"
+            ;;
+        esac
+        echo "resolved-path=${resolved_path}" >> "$GITHUB_OUTPUT"
+
+    - name: Setup .NET
+      id: setup-dotnet
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - name: Cache NuGet packages
+      id: nuget-cache
+      uses: actions/cache@v5
+      with:
+        path: ${{ steps.nuget-packages.outputs.resolved-path }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', 'dotnet-tools.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Report .NET workspace inputs
+      shell: bash
+      run: |
+        echo "Using .NET ${{ steps.setup-dotnet.outputs.dotnet-version }}"
+        echo "Cache hit - ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}"
+
+    - name: Restore .NET tools
+      if: ${{ inputs.restore-tools == 'true' }}
+      shell: bash
+      env:
+        NUGET_PACKAGES: ${{ steps.nuget-packages.outputs.resolved-path }}
+      run: dotnet tool restore || (echo "First restore failed; retrying" && dotnet tool restore)
+
+    - name: Restore solution dependencies
+      if: ${{ inputs.restore-solution == 'true' }}
+      shell: bash
+      env:
+        NUGET_PACKAGES: ${{ steps.nuget-packages.outputs.resolved-path }}
+      run: ${{ inputs.restore-command }}
