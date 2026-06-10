@@ -7,8 +7,12 @@
         "automated"
     ],
     "reviewers": [
-        "team:your-team-here"
+        //? Automatically assign reviewers to renovate PRs
+        // "team:your-team-here"
     ],
+    "lockFileMaintenance": {
+        "enabled": true
+    },
     "packageRules": [
         {
             "matchUpdateTypes": [
@@ -17,7 +21,8 @@
                 "pin",
                 "digest"
             ],
-            "automerge": true
+            //? Automerge should only be enabled when repository rules for passing checks are enforced by GitHub
+            "automerge": false
         }
     ]
 }
