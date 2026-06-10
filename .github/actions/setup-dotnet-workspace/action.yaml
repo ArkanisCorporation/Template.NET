@@ -1,50 +1,35 @@
-name: Setup .NET workspace
-description: Set up the pinned .NET SDK, restore cached NuGet packages, and restore tools and dependencies.
+name: Setup .NET Workspace
+description: Setup the repository .NET SDK, NuGet cache, local tools, and locked restore.
 
 inputs:
-  nuget-packages:
-    description: NuGet package cache path.
-    required: false
-    default: .nuget/packages
   restore-tools:
-    description: Restore local .NET tools.
+    description: Restore local .NET tools from dotnet-tools.json.
+    required: false
+    default: "true"
+  restore-dependencies:
+    description: Restore NuGet dependencies after tool restore.
     required: false
     default: "true"
   restore-solution:
-    description: Restore solution dependencies.
+    description: Legacy alias for callers that skip dependency restore.
     required: false
     default: "true"
   restore-command:
-    description: Command used to restore solution dependencies.
+    description: Restore command to run when restore-dependencies is true.
     required: false
-    default: dotnet restore --locked-mode
+    default: dotnet restore Template.slnx --locked-mode
 
 outputs:
   dotnet-version:
-    description: Installed .NET SDK version.
+    description: The .NET SDK version selected by actions/setup-dotnet.
     value: ${{ steps.setup-dotnet.outputs.dotnet-version }}
   cache-hit:
-    description: Whether the NuGet package cache was restored from an exact key match.
-    value: ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}
+    description: Whether the NuGet cache restored an exact match.
+    value: ${{ steps.nuget-cache.outputs.cache-hit }}
 
 runs:
   using: composite
   steps:
-    - name: Resolve NuGet package path
-      id: nuget-packages
-      shell: bash
-      run: |
-        nuget_packages='${{ inputs.nuget-packages }}'
-        case "$nuget_packages" in
-          /*|[A-Za-z]:/*)
-            resolved_path="$nuget_packages"
-            ;;
-          *)
-            resolved_path="${GITHUB_WORKSPACE}/${nuget_packages}"
-            ;;
-        esac
-        echo "resolved-path=${resolved_path}" >> "$GITHUB_OUTPUT"
-
     - name: Setup .NET
       id: setup-dotnet
       uses: actions/setup-dotnet@v5
@@ -53,29 +38,26 @@ runs:
 
     - name: Cache NuGet packages
       id: nuget-cache
-      uses: actions/cache@v5
+      # Pin RunsOn cache because release workflows execute this composite with write permissions.
+      uses: runs-on/cache@88d90644011a3a9957fd141a106f5a94f9794203
       with:
-        path: ${{ steps.nuget-packages.outputs.resolved-path }}
+        path: ${{ env.NUGET_PACKAGES }}
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', 'dotnet-tools.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
 
-    - name: Report .NET workspace inputs
+    - name: Print .NET and cache details
       shell: bash
       run: |
         echo "Using .NET ${{ steps.setup-dotnet.outputs.dotnet-version }}"
         echo "Cache hit - ${{ steps.nuget-cache.outputs.cache-hit || 'false' }}"
 
-    - name: Restore .NET tools
-      if: ${{ inputs.restore-tools == 'true' }}
+    - name: Restore local .NET tools
+      if: inputs.restore-tools == 'true'
       shell: bash
-      env:
-        NUGET_PACKAGES: ${{ steps.nuget-packages.outputs.resolved-path }}
-      run: dotnet tool restore || (echo "First restore failed; retrying" && dotnet tool restore)
+      run: dotnet tool restore || (echo "First tool restore failed; retrying" && dotnet tool restore)
 
-    - name: Restore solution dependencies
-      if: ${{ inputs.restore-solution == 'true' }}
+    - name: Restore dependencies
+      if: inputs.restore-dependencies == 'true' && inputs.restore-solution == 'true'
       shell: bash
-      env:
-        NUGET_PACKAGES: ${{ steps.nuget-packages.outputs.resolved-path }}
       run: ${{ inputs.restore-command }}
