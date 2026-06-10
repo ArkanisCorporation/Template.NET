@@ -33,9 +33,15 @@ env:
 jobs:
   test:
     runs-on: ${{ inputs.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     steps:
       -   name: Git checkout
           uses: actions/checkout@v6
+          with:
+            persist-credentials: false
 
       -   name: Setup .NET workspace
           id: dotnet
@@ -46,8 +52,19 @@ jobs:
 
       -   name: Test solution
           if: inputs.test_filter == ''
-          run: dotnet test --no-build --verbosity normal
+          run: dotnet test --no-build --verbosity normal --logger "trx;LogFilePrefix=test-results" --results-directory artifacts/test-results
 
       -   name: Test filtered solution
           if: inputs.test_filter != ''
-          run: dotnet test --no-build --verbosity normal --filter "${{ inputs.test_filter }}"
+          env:
+            DOTNET_TEST_FILTER: ${{ inputs.test_filter }}
+          run: dotnet test --no-build --verbosity normal --logger "trx;LogFilePrefix=test-results" --results-directory artifacts/test-results --filter "$DOTNET_TEST_FILTER"
+
+      -   name: Upload test results
+          if: ${{ always() }}
+          uses: actions/upload-artifact@v5
+          with:
+            name: test-results-${{ github.run_id }}-${{ github.run_attempt }}
+            path: artifacts/test-results
+            if-no-files-found: warn
+            retention-days: 14
