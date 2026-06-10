@@ -1,49 +1,49 @@
 <Solution>
-  <Folder Name="/config/">
-    <File Path=".editorconfig" />
-    <File Path=".globalconfig" />
-    <File Path=".gitattributes" />
-    <File Path=".gitignore" />
-    <File Path="AGENTS.md" />
-    <File Path="CodeMetricsConfig.txt" />
-    <File Path="Directory.Build.props" />
-    <File Path="Directory.Build.targets" />
-    <File Path="Directory.Packages.props" />
-    <File Path="global.json" />
-    <File Path="renovate.jsonc" />
-  </Folder>
-  <Folder Name="/scripts/">
-    <File Path="scripts/act/test-ci.ps1" />
-    <File Path="scripts/act/test-ci.sh" />
-    <File Path="scripts/act/test-pr.ps1" />
-    <File Path="scripts/act/test-pr.sh" />
-    <File Path="scripts/prepare-shell-scripts.ps1" />
-    <File Path="scripts/prepare-shell-scripts.sh" />
-    <File Path="scripts/update-shell-script-permissions.ps1" />
-    <File Path="scripts/update-shell-script-permissions.sh" />
-    <File Path="scripts/semantic-release/100-verify/101-verify_server.sh" />
-    <File Path="scripts/semantic-release/100-verify/102-verify_nuget.sh" />
-    <File Path="scripts/semantic-release/100-verify/103-verify_helm.sh" />
-    <File Path="scripts/semantic-release/100-verify/verify-common.sh" />
-    <File Path="scripts/semantic-release/100-verify/verify.sh" />
-    <File Path="scripts/semantic-release/200-prepare/201-prepare_nuget.sh" />
-    <File Path="scripts/semantic-release/200-prepare/202-prepare_server.sh" />
-    <File Path="scripts/semantic-release/200-prepare/203-prepare_helm.sh" />
-    <File Path="scripts/semantic-release/200-prepare/prepare-common.sh" />
-    <File Path="scripts/semantic-release/200-prepare/prepare.sh" />
-    <File Path="scripts/semantic-release/300-publish/301-publish_server.sh" />
-    <File Path="scripts/semantic-release/300-publish/302-publish_nuget.sh" />
-    <File Path="scripts/semantic-release/300-publish/303-publish_helm.sh" />
-    <File Path="scripts/semantic-release/300-publish/publish-common.sh" />
-    <File Path="scripts/semantic-release/300-publish/publish.sh" />
-    <File Path="scripts/semantic-release/common.sh" />
-    <File Path="scripts/semantic-release/README.md" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/Template/Template.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Template.IntegrationTests/Template.IntegrationTests.csproj" />
-    <Project Path="tests/Template.UnitTests/Template.UnitTests.csproj" />
-  </Folder>
+    <Folder Name="/config/">
+        <File Path=".editorconfig"/>
+        <File Path=".globalconfig"/>
+        <File Path=".gitattributes"/>
+        <File Path=".gitignore"/>
+        <File Path="AGENTS.md"/>
+        <File Path="CodeMetricsConfig.txt"/>
+        <File Path="Directory.Build.props"/>
+        <File Path="Directory.Build.targets"/>
+        <File Path="Directory.Packages.props"/>
+        <File Path="global.json"/>
+        <File Path="renovate.jsonc"/>
+    </Folder>
+    <Folder Name="/scripts/">
+        <File Path="scripts/act/test-ci.ps1"/>
+        <File Path="scripts/act/test-ci.sh"/>
+        <File Path="scripts/act/test-pr.ps1"/>
+        <File Path="scripts/act/test-pr.sh"/>
+        <File Path="scripts/prepare-shell-scripts.ps1"/>
+        <File Path="scripts/prepare-shell-scripts.sh"/>
+        <File Path="scripts/update-shell-script-permissions.ps1"/>
+        <File Path="scripts/update-shell-script-permissions.sh"/>
+        <File Path="scripts/semantic-release/100-verify/101-verify_server.sh"/>
+        <File Path="scripts/semantic-release/100-verify/102-verify_nuget.sh"/>
+        <File Path="scripts/semantic-release/100-verify/103-verify_helm.sh"/>
+        <File Path="scripts/semantic-release/100-verify/verify-common.sh"/>
+        <File Path="scripts/semantic-release/100-verify/verify.sh"/>
+        <File Path="scripts/semantic-release/200-prepare/201-prepare_server.sh"/>
+        <File Path="scripts/semantic-release/200-prepare/202-prepare_nuget.sh"/>
+        <File Path="scripts/semantic-release/200-prepare/203-prepare_helm.sh"/>
+        <File Path="scripts/semantic-release/200-prepare/prepare-common.sh"/>
+        <File Path="scripts/semantic-release/200-prepare/prepare.sh"/>
+        <File Path="scripts/semantic-release/300-publish/301-publish_server.sh"/>
+        <File Path="scripts/semantic-release/300-publish/302-publish_nuget.sh"/>
+        <File Path="scripts/semantic-release/300-publish/303-publish_helm.sh"/>
+        <File Path="scripts/semantic-release/300-publish/publish-common.sh"/>
+        <File Path="scripts/semantic-release/300-publish/publish.sh"/>
+        <File Path="scripts/semantic-release/common.sh"/>
+        <File Path="scripts/semantic-release/README.md"/>
+    </Folder>
+    <Folder Name="/src/">
+        <Project Path="src/Template/Template.csproj"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/Template.IntegrationTests/Template.IntegrationTests.csproj"/>
+        <Project Path="tests/Template.UnitTests/Template.UnitTests.csproj"/>
+    </Folder>
 </Solution>
