@@ -16,12 +16,19 @@ dotnet tool restore
 dotnet tool list
 ```
 
-Restore, build, and test the solution manually.
+Restore, format-check, build, and test the solution manually.
 
 ```powershell
-dotnet restore Template.slnx
+dotnet restore Template.slnx --locked-mode
+dotnet format Template.slnx --verify-no-changes --verbosity diagnostic --no-restore
 dotnet build Template.slnx --no-restore
 dotnet test Template.slnx --no-build
+```
+
+Generate local Cobertura coverage files with the Coverlet collector.
+
+```powershell
+dotnet test Template.slnx --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/coverage/local
 ```
 
 ## Tooling
@@ -102,6 +109,9 @@ Run the `ci` branch push test job locally.
 ```bash
 ./scripts/act/test-ci.sh
 ```
+
+The quality jobs still provide useful local validation through `act`.
+Current `act` versions can fail at `actions/upload-artifact@v7` with a `mime_type` schema error, so GitHub-hosted Actions remain the final verification path for artifact upload and step-summary rendering.
 
 List the jobs that `act` can see.
 

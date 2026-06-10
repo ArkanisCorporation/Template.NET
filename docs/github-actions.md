@@ -9,9 +9,9 @@ Reusable workflows live directly in `.github/workflows` because GitHub does not 
 It runs tests, runs semantic-release, and optionally deploys staging Kubernetes resources after a release.
 It runs on pushes to `main`, `release/*`, and `ci`, pull requests targeting `main`, manual dispatches, and repository dispatches.
 
-`_test.yaml` is the reusable .NET test workflow.
-It restores local .NET tools, restores NuGet dependencies in locked mode, builds the solution, and runs tests.
-It accepts an optional test filter and runner override.
+`_test.yaml` is the reusable .NET quality workflow.
+It restores local .NET tools, restores NuGet dependencies in locked mode, verifies `dotnet format`, checks production source complexity through CA1502, builds and tests the solution, collects Coverlet coverage, publishes a coverage job summary, and uploads coverage artifacts.
+It accepts an optional test filter, runner override, concurrency group prefix, and ReportGenerator `coverage_custom_settings` string for downstream coverage thresholds.
 
 `_release.yaml` is the reusable semantic-release workflow.
 It restores dependencies, prepares Docker Buildx, logs in to GitHub Container Registry, installs Kubernetes tooling, and runs semantic-release.
@@ -68,6 +68,11 @@ Review major updates manually because GitHub Actions, Helm, Kubernetes, and sema
 Use `act` for local pull request and CI branch test workflow validation.
 Use the commands in the README `nektos/act` section as the detailed local validation source.
 Keep those README commands current when wrapper scripts, runner mappings, or supported local validation targets change.
+The local `act` test wrappers exercise the reusable quality workflow through the top-level `test` caller job.
+Those wrappers run the `Format`, `Complexity`, `Tests`, and `Coverage` jobs from `_test.yaml`.
+Use GitHub-hosted Actions for the final coverage artifact and job-summary rendering check because local `act` emulates those features imperfectly.
+Local `act` can fail artifact upload for `actions/upload-artifact@v7` with a `mime_type` schema error.
+GitHub-hosted artifact upload remains the production verification path.
 Use GitHub-hosted Actions for final release and deployment validation because local `act` runs do not fully emulate GitHub environments, permissions, registry credentials, Kubernetes credentials, release state, or concurrency.
 
 ## Release Behavior
@@ -87,8 +92,8 @@ The optional `image_tag` input overrides `Kubernetes:Images:Tag` during deployme
 
 ## Repository Settings Checklist
 
-Require the `Tests` check before merging to the default branch.
-Add any workflow quality check to the required status checks when that workflow exists.
+Require `Tests / Format`, `Tests / Complexity`, `Tests / Tests`, and `Tests / Coverage` before merging to the default branch.
+Require a plain `Tests` check only after confirming that exact check name appears in the repository rules UI.
 Protect `release/stable` with required review and required CI checks before using it for production releases.
 Configure staging and production GitHub environments with reviewers and deployment branch restrictions.
 Restrict self-hosted runner groups to repositories and workflows that are allowed to use them.
