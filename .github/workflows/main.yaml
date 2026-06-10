@@ -70,7 +70,7 @@ jobs:
 
   deploy-staging-kubernetes:
     name: Kubernetes
-    if: ${{ github.event_name != 'pull_request' && ((github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '') || inputs.deploy_staging) }}
+    if: ${{ false && github.event_name != 'pull_request' && ((github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '') || inputs.deploy_staging) }}
     needs: release
     permissions:
       contents: read
