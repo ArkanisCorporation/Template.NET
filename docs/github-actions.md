@@ -38,7 +38,9 @@ Deployment remains fixed to `arkanis-runners` because it depends on trusted runn
 
 Default workflow permissions should be read-only.
 Grant write permissions only on jobs that publish releases, packages, comments, backpropagation pull requests, or deployments.
-The top-level CI/CD workflow currently grants `contents: write`, `issues: write`, `pull-requests: write`, and `packages: write` because the release workflow publishes GitHub releases, comments on released work, creates release backpropagation pull requests, and publishes packages.
+Caller jobs that invoke reusable workflows must grant every permission required by the called workflow because reusable workflow permissions can be maintained or reduced but not elevated.
+The top-level CI/CD workflow grants release write scopes only to the real release caller.
+Pull request release dry runs stay read-only.
 Deployment workflows use `contents: read` and `packages: read`.
 Prefer named reusable workflow secrets over `secrets: inherit` for jobs that need only a small set of secrets.
 `GITHUB_TOKEN` is used for GitHub release and GHCR operations.

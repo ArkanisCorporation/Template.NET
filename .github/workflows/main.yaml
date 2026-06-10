@@ -1,10 +1,7 @@
 name: Test & Release (.NET)
 
 permissions:
-  contents: write       # for publishing a GitHub release and creating release backpropagation PRs
-  issues: write         # for commenting on released issues
-  pull-requests: write  # for commenting on released pull requests and creating release backpropagation PRs
-  packages: write       # for publishing packages in repository registry
+  contents: read
 
 on:
   workflow_dispatch:
@@ -58,6 +55,11 @@ jobs:
     name: Release
     if: ${{ github.event_name != 'pull_request' }}
     needs: test
+    permissions:
+      contents: write       # for publishing a GitHub release and creating release backpropagation PRs
+      issues: write         # for commenting on released issues
+      pull-requests: write  # for commenting on released pull requests and creating release backpropagation PRs
+      packages: write       # for publishing packages in repository registry
     uses: ./.github/workflows/_release.yaml
     secrets:
       PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT }}
@@ -70,6 +72,9 @@ jobs:
     name: Kubernetes
     if: ${{ github.event_name != 'pull_request' && ((github.ref_name == github.event.repository.default_branch && needs.release.outputs.new_version != '') || inputs.deploy_staging) }}
     needs: release
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/_deploy-kubernetes.yaml
     with:
       environment_name: staging
