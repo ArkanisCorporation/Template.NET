@@ -55,6 +55,14 @@ Keep action versions explicit in the workflow files so reviews and dependency up
 kubectl and Helm use the action defaults unless explicit versions are added.
 Update those defaults deliberately when the target Kubernetes clusters and chart toolchain have been verified.
 
+## Dependency Update Bot
+
+This template uses Renovate as the dependency-update bot.
+Do not add Dependabot for the same ecosystems unless Renovate is removed first.
+Duplicate update bots create noisy and conflicting pull requests.
+Renovate should cover GitHub Actions, .NET dependencies, local .NET tools, semantic-release npm packages, and lock-file maintenance.
+Review major updates manually because GitHub Actions, Helm, Kubernetes, and semantic-release major versions can change runtime behavior.
+
 ## Local Validation
 
 Use `act` for local pull request and CI branch test workflow validation.

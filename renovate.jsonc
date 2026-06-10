@@ -15,14 +15,69 @@
     },
     "packageRules": [
         {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "groupName": "GitHub Actions",
             "matchUpdateTypes": [
                 "minor",
                 "patch",
-                "pin",
                 "digest"
             ],
             //? Automerge should only be enabled when repository rules for passing checks are enforced by GitHub
             "automerge": false
+        },
+        {
+            "matchManagers": [
+                "nuget"
+            ],
+            "groupName": ".NET dependencies and tools",
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "automerge": false
+        },
+        {
+            "matchDatasources": [
+                "npm"
+            ],
+            "matchDepNames": [
+                "semantic-release",
+                "@semantic-release/changelog",
+                "@semantic-release/exec"
+            ],
+            "groupName": "semantic-release",
+            "automerge": false
+        },
+        {
+            "matchUpdateTypes": [
+                "major"
+            ],
+            "automerge": false
+        }
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^\\.github/workflows/.*\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "semantic_version:\\s*(?<currentValue>\\S+)"
+            ],
+            "depNameTemplate": "semantic-release",
+            "datasourceTemplate": "npm"
+        },
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^\\.github/workflows/.*\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "(?<depName>@semantic-release/[a-z-]+)@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+            ],
+            "datasourceTemplate": "npm"
         }
     ]
 }
