@@ -13,6 +13,10 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: "Dry run?"
+        type: boolean
+        default: true
       runner:
         description: "Runner pool (override to ubuntu-latest if self-hosted is broken)"
         type: choice
@@ -32,6 +36,16 @@ on:
         required: false
         type: string
         default: arkanis-runners
+      kubectl_version:
+        description: "kubectl version"
+        required: false
+        type: string
+        default: v1.36.1
+      helm_version:
+        description: "Helm version"
+        required: false
+        type: string
+        default: v3.21.0
     secrets:
       PR_AUTOMATION_PAT:
         required: false
@@ -61,13 +75,20 @@ env:
 jobs:
   release:
     runs-on: ${{ inputs.runner }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
     env:
       HAS_PR_AUTOMATION_PAT: ${{ secrets.PR_AUTOMATION_PAT != '' }}
+      KUBECTL_VERSION: ${{ inputs.kubectl_version || 'v1.36.1' }}
+      HELM_VERSION: ${{ inputs.helm_version || 'v3.21.0' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-tags: true
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup .NET workspace
         id: dotnet
@@ -90,6 +111,7 @@ jobs:
         if: inputs.runner != 'arkanis-runners'
 
       - name: Login to GitHub Container Registry
+        if: ${{ !inputs.dry_run }}
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -98,12 +120,12 @@ jobs:
           logout: true
 
       - uses: azure/setup-kubectl@v5.1.0
-        # with:
-        #   version: '' # default is latest stable
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
 
       - uses: azure/setup-helm@v5.0.0
-        # with:
-        #   version: '' # default is latest stable
+        with:
+          version: ${{ env.HELM_VERSION }}
 
       # determines whether a new version release is mandated
       # if it is, publish scripts are run and new version is tagged and published
@@ -125,6 +147,20 @@ jobs:
             @semantic-release/exec@7.0.3
 
       - run: echo "New release - ${{ steps.semantic-release.outputs.new_release_version || 'no new release' }}"
+
+      - name: Release summary
+        run: |
+          {
+            echo "## Release summary"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Dry run | \`${{ inputs.dry_run }}\` |"
+            echo "| New version | \`${{ steps.semantic-release.outputs.new_release_version || 'no new release' }}\` |"
+            echo "| New tag | \`${{ steps.semantic-release.outputs.new_release_git_tag || 'no new release' }}\` |"
+            echo "| Previous version | \`${{ steps.semantic-release.outputs.last_release_version || 'unknown' }}\` |"
+            echo "| Previous tag | \`${{ steps.semantic-release.outputs.last_release_git_tag || 'unknown' }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install GitHub CLI
         if: ${{ ! inputs.dry_run && steps.semantic-release.outputs.new_release_version && github.ref == 'refs/heads/release/stable' }}
