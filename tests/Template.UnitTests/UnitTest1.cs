@@ -1,4 +1,4 @@
-﻿namespace Arkanis.Template.UnitTests;
+namespace Arkanis.Template.UnitTests;
 
 /// <summary>
 ///

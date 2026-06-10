@@ -1,4 +1,4 @@
-﻿namespace Arkanis.Template.IntegrationTests;
+namespace Arkanis.Template.IntegrationTests;
 
 /// <summary>
 ///

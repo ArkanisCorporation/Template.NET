@@ -1,9 +1,8 @@
-﻿namespace Arkanis.Template
+namespace Arkanis.Template;
+
+/// <summary>
+///
+/// </summary>
+public class Class1
 {
-    /// <summary>
-    ///
-    /// </summary>
-    public class Class1
-    {
-    }
 }
