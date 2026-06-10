@@ -158,6 +158,9 @@ dotnet_diagnostic.ide0059.severity = suggestion
 
 [src/**/*.cs]
 dotnet_diagnostic.CA1502.severity = warning
+dotnet_diagnostic.CA1505.severity = warning
+dotnet_diagnostic.CA1507.severity = warning
+dotnet_diagnostic.CA1509.severity = error
 
 ##########################################
 # Formatting Rules
