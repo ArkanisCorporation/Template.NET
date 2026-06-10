@@ -145,7 +145,7 @@ jobs:
             reports: artifacts/coverage/raw/**/coverage.cobertura.xml
             targetdir: artifacts/coverage/report
             reporttypes: HtmlInline;Cobertura;MarkdownSummaryGithub;TextSummary
-            assemblyfilters: +Arkanis.Template*;-*.Tests
+            assemblyfilters: +*;-*.UnitTests;-*.IntegrationTests
             tag: ${{ github.run_number }}_${{ github.run_id }}
 
       -   name: Generate coverage report with custom settings
@@ -155,7 +155,7 @@ jobs:
             reports: artifacts/coverage/raw/**/coverage.cobertura.xml
             targetdir: artifacts/coverage/report
             reporttypes: HtmlInline;Cobertura;MarkdownSummaryGithub;TextSummary
-            assemblyfilters: +Arkanis.Template*;-*.Tests
+            assemblyfilters: +*;-*.UnitTests;-*.IntegrationTests
             tag: ${{ github.run_number }}_${{ github.run_id }}
             customSettings: ${{ inputs.coverage_custom_settings }}
 
