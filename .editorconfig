@@ -153,6 +153,13 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 dotnet_diagnostic.ide0059.severity = suggestion
 
 ##########################################
+# Maintainability Metrics
+##########################################
+
+[src/**/*.cs]
+dotnet_diagnostic.CA1502.severity = warning
+
+##########################################
 # Formatting Rules
 # https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/formatting-rules
 ##########################################

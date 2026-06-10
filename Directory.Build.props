@@ -41,4 +41,8 @@
         <InternalsVisibleTo Include="$(PackageId).UnitTests"/>
         <InternalsVisibleTo Include="$(PackageId).IntegrationTests"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeMetricsConfig.txt" />
+    </ItemGroup>
 </Project>
