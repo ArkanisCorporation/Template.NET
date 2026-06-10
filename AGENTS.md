@@ -20,3 +20,8 @@ Keep reusable workflow files directly under `.github/workflows`.
 GitHub does not support reusable workflow files in subdirectories.
 
 Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated workflow operations document when local validation commands, runner expectations, secrets, or deployment behavior change.
+
+## Line Endings
+
+Keep repository text files on LF line endings.
+`.editorconfig` defines the editor expectation, and `.gitattributes` keeps fresh Git checkouts consistent even when a developer has `core.autocrlf=true`.
