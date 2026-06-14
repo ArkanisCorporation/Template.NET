@@ -13,9 +13,10 @@ on:
         description: "Runner pool (override to ubuntu-latest if self-hosted is broken)"
         type: choice
         options:
+          - daedalus
           - arkanis-runners
           - ubuntu-latest
-        default: arkanis-runners
+        default: daedalus
 
   # You can use the GitHub API to trigger a webhook event called repository_dispatch
   # when you want to trigger a workflow for activity that happens outside of GitHub.
@@ -38,7 +39,7 @@ jobs:
       contents: read
     uses: ./.github/workflows/_test.yaml
     with:
-      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || 'arkanis-runners' }}
+      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
 
   release-dry-run:
     name: Release (Dry Run)
@@ -66,7 +67,7 @@ jobs:
       NUGET_PUBLISH_API_KEY: ${{ secrets.NUGET_PUBLISH_API_KEY }}
     with:
       dry_run: ${{ github.ref == 'refs/heads/ci' }}
-      runner: ${{ inputs.runner || 'arkanis-runners' }}
+      runner: ${{ inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
 
   deploy-staging-kubernetes:
     name: Kubernetes
