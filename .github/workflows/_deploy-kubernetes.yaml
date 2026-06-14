@@ -45,7 +45,7 @@ env:
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment_name }}
-    runs-on: arkanis-runners
+    runs-on: ${{ vars.RUNNER_CLUSTER || 'arkanis-runners' }}
     timeout-minutes: 45
     environment: ${{ inputs.environment_name }}
     defaults:

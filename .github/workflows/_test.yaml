@@ -14,7 +14,7 @@ on:
         description: "Runner pool"
         required: false
         type: string
-        default: arkanis-runners
+        default: daedalus
       test_filter:
         description: "Optional dotnet test filter expression"
         required: false
