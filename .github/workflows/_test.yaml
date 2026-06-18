@@ -75,33 +75,6 @@ jobs:
       -   name: Build with complexity analyzers
           run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore --verbosity normal -warnaserror:CA1502 -warnaserror:CA1509
 
-  test:
-    name: Tests
-    runs-on: ${{ inputs.runner }}
-    timeout-minutes: 20
-    defaults:
-      run:
-        shell: bash
-    steps:
-      -   name: Git checkout
-          uses: actions/checkout@v6
-          with:
-            persist-credentials: false
-
-      -   name: Setup .NET workspace
-          uses: ./.github/actions/setup-dotnet-workspace
-
-      -   name: Build solution
-          run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore
-
-      -   name: Test solution
-          if: inputs.test_filter == ''
-          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal
-
-      -   name: Test filtered solution
-          if: inputs.test_filter != ''
-          run: dotnet test ${{ env.SOLUTION_FILE }} --no-build --verbosity normal --filter "${{ inputs.test_filter }}"
-
   coverage:
     name: Coverage
     runs-on: ${{ inputs.runner }}
@@ -158,6 +131,13 @@ jobs:
             assemblyfilters: +*;-*.UnitTests;-*.IntegrationTests
             tag: ${{ github.run_number }}_${{ github.run_id }}
             customSettings: ${{ inputs.coverage_custom_settings }}
+
+      -   name: Add comment to PR
+          if: github.event_name == 'pull_request'
+          run: gh pr comment $PR_NUMBER --edit-last --create-if-none --body-file artifacts/coverage/report/SummaryGithub.md
+          env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            PR_NUMBER: ${{ github.event.number }}
 
       -   name: Publish coverage summary
           run: cat artifacts/coverage/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
