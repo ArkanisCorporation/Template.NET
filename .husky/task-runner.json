@@ -30,6 +30,12 @@
            "name": "dotnet-format",
            "command": "dotnet",
            "args": [ "format", "Template.slnx", "--verbosity", "diagnostic", "--no-restore" ]
+       },
+       {
+           "name": "dotnet-aspire-agent-init",
+           "group": "init",
+           "command": "dotnet",
+           "args": [ "aspire", "agent", "init", "--skill-locations", "standard,claudecode", "--skills", "all", "--non-interactive" ]
        }
    ]
 }

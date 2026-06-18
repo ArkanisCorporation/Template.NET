@@ -26,7 +26,7 @@ Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated
 Keep repository text files on LF line endings.
 `.editorconfig` defines the editor expectation, and `.gitattributes` keeps fresh Git checkouts consistent even when a developer has `core.autocrlf=true`.
 
-## Shell Script Permissions
+## Post-Init Tasks
 
-Run `dotnet husky run --name update-shell-script-permissions` when tracked `*.sh` files need their Git executable bit repaired across the repository.
-Keep the pre-commit shell preparation task scoped to staged `*.sh` files.
+Run `dotnet husky run --group init` and `dotnet husky install` after creating a downstream project or worktree from this template.
+Keep essential post-init tasks in the Husky `init` group, including `dotnet-aspire-agent-init`, so README initialization examples can point at one stable command.

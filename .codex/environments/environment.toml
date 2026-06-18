@@ -5,6 +5,7 @@ name = "Template.NET"
 [setup]
 script = '''
 cd "$CODEX_WORKTREE_PATH"
+dotnet husky run --group init
 dotnet husky install
 '''
 

@@ -16,6 +16,23 @@ dotnet tool restore
 dotnet tool list
 ```
 
+Run the important post-init tasks after creating a downstream project from this template.
+The Aspire agent init task prepares local agent guidance for Aspire workflows and should be rerun when Aspire agent setup changes.
+
+```powershell
+dotnet husky run --group init
+dotnet husky install
+```
+
+Use this as the usual downstream initialization sequence.
+
+```powershell
+dotnet tool restore
+dotnet husky run --group init
+dotnet husky install
+dotnet restore Template.slnx --locked-mode
+```
+
 Restore, format-check, build, and test the solution manually.
 
 ```powershell
@@ -60,6 +77,20 @@ It updates every tracked `*.sh` file in the Git index, regardless of staged stat
 
 ```powershell
 dotnet husky run --name update-shell-script-permissions
+```
+
+Run the configured init task group after creating a downstream project from this template.
+The init group currently runs the .NET Aspire agent init task.
+It runs `dotnet aspire agent init --skill-locations standard,claudecode --skills all --non-interactive` through the restored local Aspire CLI.
+
+```powershell
+dotnet husky run --group init
+```
+
+Run the .NET Aspire agent init task directly only when you need that single task.
+
+```powershell
+dotnet husky run --name dotnet-aspire-agent-init
 ```
 
 Run the configured .NET format task manually.

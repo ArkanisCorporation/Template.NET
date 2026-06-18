@@ -355,3 +355,7 @@ docker-compose.yaml
 .act/artifacts
 .act/cache/
 .act/*.log
+
+# Local MCP files
+.mcp.json
+mcp.json
