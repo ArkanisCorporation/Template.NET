@@ -3,7 +3,13 @@ version = 1
 name = "Template.NET"
 
 [setup]
-script = "dotnet husky install"
+script = '''
+cd "$CODEX_WORKTREE_PATH"
+dotnet husky install
+'''
 
 [cleanup]
-script = "dotnet clean"
+script = '''
+cd "$CODEX_WORKTREE_PATH"
+dotnet clean
+'''
