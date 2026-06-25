@@ -67,7 +67,7 @@ jobs:
         with:
           version: ${{ inputs.kubectl_version }}
 
-      - uses: azure/setup-helm@v5.0.0
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: ${{ inputs.helm_version }}
 
