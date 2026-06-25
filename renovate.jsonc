@@ -1,118 +1,12 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:recommended"
-    ],
-    "labels": [
-        "automated"
+         "github>ArkanisCorporation/renovate-config"
+        //? The default configuration allows automerge; however, private repo rules are not enforced
+        // "github>ArkanisCorporation/renovate-config:conservative"
     ],
     "reviewers": [
         //? Automatically assign reviewers to renovate PRs
         // "team:your-team-here"
-    ],
-    "lockFileMaintenance": {
-        "enabled": true
-    },
-    "packageRules": [
-        {
-            "matchManagers": [
-                "github-actions"
-            ],
-            "groupName": "GitHub Actions",
-            "matchUpdateTypes": [
-                "minor",
-                "patch",
-                "digest"
-            ],
-            //? Automerge should only be enabled when repository rules for passing checks are enforced by GitHub
-            "automerge": false
-        },
-        {
-            "matchManagers": [
-                "nuget"
-            ],
-            "groupName": ".NET dependencies and tools",
-            "matchUpdateTypes": [
-                "minor",
-                "patch"
-            ],
-            "automerge": false
-        },
-        {
-            "matchDatasources": [
-                "npm"
-            ],
-            "matchDepNames": [
-                "semantic-release",
-                "@semantic-release/changelog",
-                "@semantic-release/exec"
-            ],
-            "groupName": "semantic-release",
-            "automerge": false
-        },
-        {
-            "matchDatasources": [
-                "github-releases"
-            ],
-            "matchDepNames": [
-                "kubernetes/kubernetes",
-                "helm/helm"
-            ],
-            "groupName": "Kubernetes deployment tools",
-            "automerge": false
-        },
-        {
-            "matchUpdateTypes": [
-                "major"
-            ],
-            "automerge": false
-        }
-    ],
-    "customManagers": [
-        {
-            "customType": "regex",
-            "managerFilePatterns": [
-                "/^\\.github/workflows/.*\\.ya?ml$/"
-            ],
-            "matchStrings": [
-                "semantic_version:\\s*(?<currentValue>\\S+)"
-            ],
-            "depNameTemplate": "semantic-release",
-            "datasourceTemplate": "npm"
-        },
-        {
-            "customType": "regex",
-            "managerFilePatterns": [
-                "/^\\.github/workflows/.*\\.ya?ml$/"
-            ],
-            "matchStrings": [
-                "(?<depName>@semantic-release/[a-z-]+)@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-            ],
-            "datasourceTemplate": "npm"
-        },
-        {
-            "customType": "regex",
-            "managerFilePatterns": [
-                "/^\\.github/workflows/.*\\.ya?ml$/"
-            ],
-            "matchStrings": [
-                "kubectl_version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)",
-                "kubectl_version:[\\s\\S]*?default:\\s*\"?(?<currentValue>v\\d+\\.\\d+\\.\\d+)\"?"
-            ],
-            "depNameTemplate": "kubernetes/kubernetes",
-            "datasourceTemplate": "github-releases"
-        },
-        {
-            "customType": "regex",
-            "managerFilePatterns": [
-                "/^\\.github/workflows/.*\\.ya?ml$/"
-            ],
-            "matchStrings": [
-                "helm_version:\\s*(?<currentValue>v\\d+\\.\\d+\\.\\d+)",
-                "helm_version:[\\s\\S]*?default:\\s*\"?(?<currentValue>v\\d+\\.\\d+\\.\\d+)\"?"
-            ],
-            "depNameTemplate": "helm/helm",
-            "datasourceTemplate": "github-releases"
-        }
     ]
 }
