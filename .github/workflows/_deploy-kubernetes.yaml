@@ -27,12 +27,12 @@ on:
         description: "kubectl version used for deployment"
         required: false
         type: string
-        default: "v1.36.1"
+        default: "v1.36.2"
       helm_version:
         description: "Helm version used for deployment"
         required: false
         type: string
-        default: "v4.2.0"
+        default: "v4.2.2"
       image_tag:
         description: "Optional image tag override for Kubernetes:Images:Tag"
         required: false

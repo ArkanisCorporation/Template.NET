@@ -35,12 +35,12 @@ on:
         description: "kubectl version"
         required: false
         type: string
-        default: v1.36.1
+        default: v1.36.2
       helm_version:
         description: "Helm version"
         required: false
         type: string
-        default: v4.2.0
+        default: v4.2.2
     secrets:
       PR_AUTOMATION_PAT:
         required: false
