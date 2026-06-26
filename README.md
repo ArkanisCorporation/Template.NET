@@ -140,27 +140,20 @@ scoop install act
 Run the pull request test job locally.
 
 ```powershell
-.\scripts\act\test-pr.ps1
-```
-
-```bash
-./scripts/act/test-pr.sh
+dotnet run --file scripts/act/test-pr.cs
 ```
 
 Set `ACT_BIN` when `act` is installed outside your shell `PATH`.
 
-```bash
-ACT_BIN=/path/to/act ./scripts/act/test-pr.sh
+```powershell
+$env:ACT_BIN = "C:\path\to\act.exe"
+dotnet run --file scripts/act/test-pr.cs
 ```
 
 Run the `ci` branch push test job locally.
 
 ```powershell
-.\scripts\act\test-ci.ps1
-```
-
-```bash
-./scripts/act/test-ci.sh
+dotnet run --file scripts/act/test-ci.cs
 ```
 
 The quality jobs still provide useful local validation through `act`.
@@ -175,7 +168,7 @@ act -l pull_request -W .github/workflows/main.yaml
 The repository `.actrc` contains only low-level runner defaults.
 It maps `arkanis-runners` to an `act`-compatible Ubuntu runner image, not to the plain `ubuntu:latest` Docker image.
 The plain Docker image does not include the Node runtime required by JavaScript actions.
-The wrapper scripts in [`scripts/act`](scripts/act) keep the human-facing commands named and readable.
+The file-based C# scripts in [`scripts/act`](scripts/act) keep the human-facing commands named and readable.
 They store local workflow artifacts under `.act/artifacts`.
 Do not store real secrets in committed files.
 Use `.act/secrets` or secure interactive secret prompts for local-only secrets.

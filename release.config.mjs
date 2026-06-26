@@ -36,17 +36,17 @@ export default {
                     "VERSION=${nextRelease.version} " +
                     "VERSION_TAG=${nextRelease.gitTag} " +
                     "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "./scripts/semantic-release/100-verify/verify.sh",
+                    "dotnet run --file ./scripts/semantic-release/100-verify/verify.cs",
                 prepareCmd:
                     "VERSION=${nextRelease.version} " +
                     "VERSION_TAG=${nextRelease.gitTag} " +
                     "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "./scripts/semantic-release/200-prepare/prepare.sh",
+                    "dotnet run --file ./scripts/semantic-release/200-prepare/prepare.cs",
                 publishCmd:
                     "VERSION=${nextRelease.version} " +
                     "VERSION_TAG=${nextRelease.gitTag} " +
                     "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "./scripts/semantic-release/300-publish/publish.sh",
+                    "dotnet run --file ./scripts/semantic-release/300-publish/publish.cs",
             },
         ],
     ],
