@@ -80,7 +80,7 @@ jobs:
       HELM_VERSION: ${{ inputs.helm_version || 'v3.21.0' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
