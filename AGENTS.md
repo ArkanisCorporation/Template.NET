@@ -26,6 +26,16 @@ Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated
 Keep repository text files on LF line endings.
 `.editorconfig` defines the editor expectation, and `.gitattributes` keeps fresh Git checkouts consistent even when a developer has `core.autocrlf=true`.
 
+## Repository Automation Scripts
+
+Keep repository automation scripts as C# file-based apps run with `dotnet run --file`.
+Executable file-based script entries start with `#!/usr/bin/env -S dotnet --`, followed by the shared `#:` property directives used under `scripts`.
+Use `#:include` for shared script logic.
+Use `CliWrap` through the shared native-command helpers for native command execution.
+Use `LibGit2Sharp` through the shared repository helpers for Git repository, status, blob, and index operations.
+When a file-based script name contains characters that are awkward for generated assembly names, set an explicit `#:property AssemblyName=...`.
+Public and internal script helper APIs and custom exceptions require XML docs that state behavior, preconditions, side effects, and thrown exceptions.
+
 ## Post-Init Tasks
 
 Run `dotnet husky run --group init` and `dotnet husky install` after creating a downstream project or worktree from this template.

@@ -1,22 +1,26 @@
 # Semantic Release Scripts
 
-This directory contains the shell scripts used by [`@semantic-release/exec`](https://github.com/semantic-release/exec).
+This directory contains C# file-based apps used by [`@semantic-release/exec`](https://github.com/semantic-release/exec).
 The scripts are split by semantic-release lifecycle phase.
+Run them with `dotnet run --file`.
 
 ## Entry Points
 
 [`release.config.mjs`](../../release.config.mjs) calls these entry points.
 
-- [`100-verify/verify.sh`](100-verify/verify.sh) runs `verifyReleaseCmd`.
-- [`200-prepare/prepare.sh`](200-prepare/prepare.sh) runs `prepareCmd`.
-- [`300-publish/publish.sh`](300-publish/publish.sh) runs `publishCmd`.
+- [`100-verify/verify.cs`](100-verify/verify.cs) runs `verifyReleaseCmd`.
+- [`200-prepare/prepare.cs`](200-prepare/prepare.cs) runs `prepareCmd`.
+- [`300-publish/publish.cs`](300-publish/publish.cs) runs `publishCmd`.
 
-Each entry point loads shared helpers, validates the semantic-release environment, and then runs phase sub-scripts by prefix.
+Each executable entry starts with `#!/usr/bin/env -S dotnet --`.
+Each executable entry then sets the file-based app properties used by this repository, including `RestorePackagesWithLockFile=false`.
+Shared script package references live in [`../shared/Packages.cs`](../shared/Packages.cs).
+Shared script logic is included with `#:include`.
 
 ## Script Ordering
 
 Sub-scripts are selected by filename prefix.
-The common helper `run_subs_with_prefix <directory> <prefix>` finds matching `*.sh` files directly in the provided directory, sorts them by filename, and runs them in order.
+`ReleaseSubScripts.RunWithPrefixAsync` finds matching `*.cs` files directly in the provided directory, sorts them by filename, and runs them in order with `dotnet run --file`.
 
 Current prefixes are:
 
@@ -24,7 +28,7 @@ Current prefixes are:
 - `2` for prepare sub-scripts.
 - `3` for publish sub-scripts.
 
-For example, `300-publish/publish.sh` runs `301-publish_server.sh`, `302-publish_nuget.sh`, and `303-publish_helm.sh` in that order.
+For example, `300-publish/publish.cs` runs `301-publish_server.cs`, `302-publish_nuget.cs`, and `303-publish_helm.cs` in that order.
 
 ## Phase Responsibilities
 
@@ -37,9 +41,12 @@ It runs `dotnet setversion --recursive "$VERSION"` before running prepare sub-sc
 The publish phase publishes artifacts created during prepare.
 It should consume existing artifacts rather than creating new ones.
 
+Keep logs on stderr when semantic-release expects stdout to stay parseable.
+The shared helpers route native command output through `CliWrap` and mirror release command logs to stderr.
+
 ## Defaults
 
-Shared defaults are defined in [`common.sh`](common.sh).
+Shared defaults are defined in [`shared/ReleaseDefaults.cs`](shared/ReleaseDefaults.cs).
 These values describe common output roots and tool settings.
 They are not intended to limit the release to one project, one package, or one image.
 
@@ -66,14 +73,10 @@ Publishing NuGet packages requires `NUGET_PUBLISH_API_KEY`.
 `NUGET_PUBLISH_SOURCE_URL` defaults to `https://api.nuget.org/v3/index.json`.
 
 Publishing Helm charts requires `GITHUB_OWNER`.
-When `GITHUB_REPOSITORY` is available, `common.sh` derives `GITHUB_OWNER` from it.
+When `GITHUB_REPOSITORY` is available, `ReleaseDefaults` derives `GITHUB_OWNER` from it.
 
 Docker image helpers accept an image name argument.
-When a leaf script wants to default to the current GitHub repository name, it can call `default_docker_image_bare`.
-
-The template leaf scripts use `RELEASE_SERVER_PROJECT` as an optional switch for Docker image targets.
-When it is empty, the default server verify, prepare, and publish scripts skip Docker work.
-Set `RELEASE_DOCKER_IMAGE_BARE` to override the default image name used by those leaf scripts.
+The template leaf scripts keep the default Docker and NuGet target calls commented until a downstream project opts into them.
 
 The template leaf scripts use `RELEASE_HELM_ENABLED=true` as an optional switch for Helm targets.
 When it is not enabled, the default Helm verify, prepare, and publish scripts skip Helm work.
@@ -82,42 +85,42 @@ When it is not enabled, the default Helm verify, prepare, and publish scripts sk
 
 Restore local tools before running the release scripts manually.
 
-```bash
+```powershell
 dotnet tool restore
 ```
 
 Run the verify phase with sample semantic-release values.
 
-```bash
-VERSION=1.2.3 \
-VERSION_TAG=v1.2.3 \
-VERSION_CHANNEL=ci \
-./scripts/semantic-release/100-verify/verify.sh
+```powershell
+$env:VERSION = "1.2.3"
+$env:VERSION_TAG = "v1.2.3"
+$env:VERSION_CHANNEL = "ci"
+dotnet run --file scripts/semantic-release/100-verify/verify.cs
 ```
 
 Run the prepare phase with sample semantic-release values.
 
-```bash
-VERSION=1.2.3 \
-VERSION_TAG=v1.2.3 \
-VERSION_CHANNEL=ci \
-./scripts/semantic-release/200-prepare/prepare.sh
+```powershell
+$env:VERSION = "1.2.3"
+$env:VERSION_TAG = "v1.2.3"
+$env:VERSION_CHANNEL = "ci"
+dotnet run --file scripts/semantic-release/200-prepare/prepare.cs
 ```
 
 Run the publish phase only after prepare has created artifacts.
 
-```bash
-VERSION=1.2.3 \
-VERSION_TAG=v1.2.3 \
-VERSION_CHANNEL=ci \
-NUGET_PUBLISH_API_KEY=example \
-./scripts/semantic-release/300-publish/publish.sh
+```powershell
+$env:VERSION = "1.2.3"
+$env:VERSION_TAG = "v1.2.3"
+$env:VERSION_CHANNEL = "ci"
+$env:NUGET_PUBLISH_API_KEY = "example"
+dotnet run --file scripts/semantic-release/300-publish/publish.cs
 ```
 
 Use a non-production NuGet source when testing publish locally.
 
-```bash
-NUGET_PUBLISH_SOURCE_URL=https://apiint.nugettest.org/v3/index.json
+```powershell
+$env:NUGET_PUBLISH_SOURCE_URL = "https://apiint.nugettest.org/v3/index.json"
 ```
 
 ## Adding Release Targets
@@ -131,44 +134,43 @@ Name it with a `2` prefix.
 Add a publish script when a target uploads artifacts.
 Name it with a `3` prefix.
 
-The shared helper functions are reusable and accept the target as an argument.
+The shared helper methods are reusable and accept the target as an argument.
 This keeps each leaf script free to handle one or more projects explicitly.
 
-To verify more NuGet projects, add calls like this to [`100-verify/102-verify_nuget.sh`](100-verify/102-verify_nuget.sh).
+To verify more NuGet projects, add calls like this to [`100-verify/102-verify_nuget.cs`](100-verify/102-verify_nuget.cs).
 
-```bash
-verify_nuget_project "Template"
-verify_nuget_project "Another.Library"
+```csharp
+await VerifyTargets.VerifyNuGetProjectAsync("Template", cancellationTokenSource.Token);
+await VerifyTargets.VerifyNuGetProjectAsync("Another.Library", cancellationTokenSource.Token);
 ```
 
-To build more NuGet packages, add calls like this to [`200-prepare/201-prepare_nuget.sh`](200-prepare/201-prepare_nuget.sh).
+To build more NuGet packages, add calls like this to [`200-prepare/202-prepare_nuget.cs`](200-prepare/202-prepare_nuget.cs).
 
-```bash
-prepare_nuget_package "Template" "$(nuget_artifact_dir "template")"
-prepare_nuget_package "Another.Library" "$(nuget_artifact_dir "another-library")"
+```csharp
+var defaults = ReleaseDefaults.Load();
+await PrepareTargets.PrepareNuGetPackageAsync("Template", Path.Combine(defaults.NuGetArtifactsDirectory, "template"), defaults, cancellationTokenSource.Token);
+await PrepareTargets.PrepareNuGetPackageAsync("Another.Library", Path.Combine(defaults.NuGetArtifactsDirectory, "another-library"), defaults, cancellationTokenSource.Token);
 ```
 
-To publish those packages, add matching calls to [`300-publish/302-publish_nuget.sh`](300-publish/302-publish_nuget.sh).
+To publish those packages, add matching calls to [`300-publish/302-publish_nuget.cs`](300-publish/302-publish_nuget.cs).
 
-```bash
-publish_nuget_packages "$(nuget_artifact_dir "template")"
-publish_nuget_packages "$(nuget_artifact_dir "another-library")"
+```csharp
+var defaults = ReleaseDefaults.Load();
+await PublishTargets.PublishNuGetPackagesAsync(Path.Combine(defaults.NuGetArtifactsDirectory, "template"), cancellationTokenSource.Token);
+await PublishTargets.PublishNuGetPackagesAsync(Path.Combine(defaults.NuGetArtifactsDirectory, "another-library"), cancellationTokenSource.Token);
 ```
 
 Docker image helpers follow the same pattern.
 
-```bash
-verify_docker_project "Template.Host"
-prepare_docker_image "Template.Host" "owner/template-host"
-publish_docker_image "Template.Host" "owner/template-host"
+```csharp
+await VerifyTargets.VerifyDockerProjectAsync("Template.Host", cancellationTokenSource.Token);
+await PrepareTargets.PrepareDockerImageAsync("Template.Host", "owner/template-host", defaults, cancellationTokenSource.Token);
+await PublishTargets.PublishDockerImageAsync("Template.Host", "owner/template-host", defaults, cancellationTokenSource.Token);
 ```
 
 Helm helpers accept explicit output directories.
 
-```bash
-prepare_helm_chart "${RELEASE_HELM_MANIFEST_DIR}" "${RELEASE_HELM_CHART_DIR}"
-publish_helm_charts "${RELEASE_HELM_CHART_DIR}"
+```csharp
+await PrepareTargets.PrepareHelmChartAsync(defaults.HelmManifestDirectory, defaults.HelmChartDirectory, cancellationTokenSource.Token);
+await PublishTargets.PublishHelmChartsAsync(defaults.HelmChartDirectory, defaults, cancellationTokenSource.Token);
 ```
-
-Keep target-specific logic in the phase-specific `*-common.sh` file when more than one script needs it.
-Keep logs on stderr when semantic-release expects stdout to stay parseable.

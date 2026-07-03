@@ -4,21 +4,13 @@
        {
            "name": "prepare-shell-scripts",
            "group": "pre-commit",
-           "command": "bash",
-           "args": [ "scripts/prepare-shell-scripts.sh" ],
-           "windows": {
-               "command": "powershell",
-               "args": [ "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/prepare-shell-scripts.ps1" ]
-           }
+           "command": "dotnet",
+           "args": [ "run", "--file", "scripts/prepare-shell-scripts.cs" ]
        },
        {
            "name": "update-shell-script-permissions",
-           "command": "bash",
-           "args": [ "scripts/update-shell-script-permissions.sh" ],
-           "windows": {
-               "command": "powershell",
-               "args": [ "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts/update-shell-script-permissions.ps1" ]
-           }
+           "command": "dotnet",
+           "args": [ "run", "--file", "scripts/update-shell-script-permissions.cs" ]
        },
        {
            "name": "dotnet-format-check",
