@@ -67,7 +67,7 @@ GitHub Actions validates formatting, tests, complexity, semantic-release metadat
 - Produces: `Arkanis.Template.Contracts.ServiceStatusResponse` with a nonblank `Status` property.
 - Produces: `GET /api/status` returning HTTP 200 with `{"status":"Healthy"}`.
 - Produces: Common health endpoints `/healthz/alive`, `/healthz/ready`, and `/healthz/startup`.
-- Produces: public partial `Program` type for `WebApplicationFactory<Program>`.
+- Produces: the .NET 10 Web SDK-generated public `Program` type for `WebApplicationFactory<Program>` without an explicit partial declaration.
 
 - [ ] **Step 1: Replace central package versions**
 
@@ -305,11 +305,10 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-/// <summary>
-/// Exposes the service entry point to integration-test hosting infrastructure.
-/// </summary>
-public partial class Program;
 ```
+
+Rely on the .NET 10 Web SDK-generated public `Program` type for `WebApplicationFactory<Program>`.
+Do not add an explicit partial `Program` declaration.
 
 Configure Serilog console output in `appsettings.json` and keep the Serilog OTLP sink disabled because Common ServiceDefaults owns OpenTelemetry export.
 Keep `appsettings.Development.json` limited to development log-level overrides.

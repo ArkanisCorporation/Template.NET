@@ -21,6 +21,20 @@ GitHub does not support reusable workflow files in subdirectories.
 
 Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated workflow operations document when local validation commands, runner expectations, secrets, or deployment behavior change.
 
+Workflow and action calls use `ArkanisCorporation/ci@v1` where a shared contract exists.
+Keep every executable workflow verification-only until the operator explicitly approves publication.
+Keep publication examples in documentation intentionally non-executable and omit a complete trigger.
+
+## Service Architecture
+
+`Template.Service` is a controller-based `net10.0` service.
+`Template.AppHost` is the local orchestration boundary.
+`Template.Contracts` is the only packable project and remains on `netstandard2.1` for client compatibility.
+Keep the dependency direction `Template.AppHost -> Template.Service -> Template.Contracts`.
+
+Common packages own service defaults, the liveness, readiness, and startup health paths, and Serilog integration.
+Consume Common through its public NuGet.org packages instead of duplicating those cross-cutting behaviors locally.
+
 ## Line Endings
 
 Keep repository text files on LF line endings.

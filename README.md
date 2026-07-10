@@ -1,30 +1,31 @@
 # Template.NET
 
-This repository is a GitHub template for .NET projects.
-It documents only the tools that a downstream project can run manually.
+Template.NET is a GitHub template for a controller-based .NET 10 service with local Aspire orchestration, Common service defaults, and dry-run-only CI release lanes.
 
-## Setup
+> [!IMPORTANT]
+> Every executable release lane in this repository is verification-only.
+> The workflows do not publish GitHub releases, container images, NuGet packages, or deployments.
+
+## Project Graph
+
+```text
+Template.AppHost (net10.0)
+└── Template.Service (net10.0)
+    └── Template.Contracts (netstandard2.1, packable)
+```
+
+`Template.Service` is the controller-based ASP.NET Core application.
+`Template.AppHost` is the local orchestration boundary and runs the service as the Aspire resource named `service`.
+`Template.Contracts` is the only packable project and demonstrates a client-compatible contracts package.
+
+The service consumes `Arkanis.Common.Aspire.ServiceDefaults`, `Arkanis.Common.Observability.Serilog`, and the AppHost consumes `Arkanis.Common.Hosting`.
+These packages restore from public NuGet.org without private-feed credentials.
+The centrally pinned Common prerelease is `1.0.0-dev.1`.
+
+## Initialize A Checkout
 
 Use the .NET SDK selected by [`global.json`](global.json).
-This template currently selects SDK `10.0.300` with `rollForward` set to `latestFeature`.
-See the Microsoft [`global.json` documentation](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json) for SDK selection behavior.
-
-Restore the local .NET tools from [`dotnet-tools.json`](dotnet-tools.json).
-
-```powershell
-dotnet tool restore
-dotnet tool list
-```
-
-Run the important post-init tasks after creating a downstream project from this template.
-The Aspire agent init task prepares local agent guidance for Aspire workflows and should be rerun when Aspire agent setup changes.
-
-```powershell
-dotnet husky run --group init
-dotnet husky install
-```
-
-Use this as the usual downstream initialization sequence.
+Restore local tools, run the template initialization tasks, and install the Git hooks after creating a downstream project or worktree.
 
 ```powershell
 dotnet tool restore
@@ -33,155 +34,120 @@ dotnet husky install
 dotnet restore Template.slnx --locked-mode
 ```
 
-Restore, format-check, build, and test the solution manually.
+The init group prepares the local Aspire agent guidance.
+
+## Build And Test
+
+Run the repository's standard local verification sequence from the repository root.
 
 ```powershell
 dotnet restore Template.slnx --locked-mode
 dotnet format Template.slnx --verify-no-changes --verbosity diagnostic --no-restore
-dotnet build Template.slnx --no-restore
-dotnet test Template.slnx --no-build
+dotnet build Template.slnx --configuration Release --no-restore
+dotnet build Template.slnx --configuration Release --no-restore --verbosity normal -warnaserror:CA1502 -warnaserror:CA1509
+dotnet test Template.slnx --configuration Release --no-build
 ```
 
-Generate local Cobertura coverage files with the Coverlet collector.
+Locked restore uses the committed `packages.lock.json` files.
+The AppHost intentionally opts out of solution-wide package lock generation because Aspire generates its project model separately.
+
+## Run The Service Directly
+
+Run the service as a normal ASP.NET Core application when orchestration is unnecessary.
 
 ```powershell
-dotnet test Template.slnx --no-build --collect:"XPlat Code Coverage" --results-directory artifacts/coverage/local
+dotnet run --project src/Template.Service/Template.Service.csproj
 ```
 
-## Tooling
+Use the HTTP URL printed by ASP.NET Core.
+The development launch profile uses `http://localhost:5000` by default.
 
-### .NET Aspire CLI
+The service exposes these endpoints.
 
-[`Aspire.Cli`](https://learn.microsoft.com/en-us/dotnet/aspire/cli/overview) is available as the local `aspire` tool.
-Use it for manual .NET Aspire workflows in downstream projects that add Aspire support.
+- `GET /api/status` returns HTTP 200 with `{"status":"Healthy"}`.
+- `GET /healthz/alive` reports Common process liveness.
+- `GET /healthz/ready` reports Common readiness checks.
+- `GET /healthz/startup` reports Common startup checks.
+
+Common owns the health endpoint paths, OpenTelemetry setup, service discovery, HTTP resilience, and optional OTLP export.
+Common Serilog integration owns the application logging defaults.
+
+## Run With Aspire
+
+Use the restored local Aspire CLI for the AppHost lifecycle.
+Use `--isolated` in a worktree so the AppHost does not share state with another checkout.
 
 ```powershell
-dotnet aspire --help
+dotnet aspire start --apphost src/Template.AppHost/Template.AppHost.csproj --isolated --non-interactive
+dotnet aspire wait service --apphost src/Template.AppHost/Template.AppHost.csproj --non-interactive
+dotnet aspire describe --apphost src/Template.AppHost/Template.AppHost.csproj --format Json --non-interactive
+dotnet aspire stop --apphost src/Template.AppHost/Template.AppHost.csproj --non-interactive
 ```
 
-### Husky.NET
+Always stop the AppHost when the local session is complete.
+Use `dotnet aspire ps --format Json --non-interactive` to confirm that no AppHost remains running.
 
-[Husky.NET](https://alirezanet.github.io/Husky.Net/) is available as the local `husky` tool.
-The configured tasks live in [`.husky/task-runner.json`](.husky/task-runner.json).
-See the Husky.NET [task runner documentation](https://alirezanet.github.io/Husky.Net/guide/task-runner.html) for task syntax.
+## Build The Container Locally
 
-Run the configured shell-script preparation task manually.
-It updates staged `*.sh` files to be executable in the Git index and rejects staged shell scripts with CRLF or mixed line endings.
+Build the service image from the repository-root context.
 
 ```powershell
-dotnet husky run --name prepare-shell-scripts
+docker build --file src/Template.Service/Dockerfile --tag template-service:dry-run .
+docker image inspect template-service:dry-run
 ```
 
-Run the repository-wide shell-script permission task manually when existing tracked shell scripts need their Git executable bit repaired.
-It updates every tracked `*.sh` file in the Git index, regardless of staged state.
+The multi-stage Dockerfile restores in locked mode, publishes the service in Release, exposes port 8080, and runs as the .NET base image's non-root application user.
+This command creates only a local image and does not authenticate to or push to a registry.
+
+## Pack The Contracts Locally
+
+Pack the contracts project with a synthetic prerelease version.
 
 ```powershell
-dotnet husky run --name update-shell-script-permissions
+dotnet pack src/Template.Contracts/Template.Contracts.csproj --configuration Release --no-restore --include-symbols --include-source -p:PackageVersion=0.0.0-ci.1.1
 ```
 
-Run the configured init task group after creating a downstream project from this template.
-The init group currently runs the .NET Aspire agent init task.
-It runs `dotnet aspire agent init --skill-locations standard,claudecode --skills all --non-interactive` through the restored local Aspire CLI.
+The `.nupkg` and `.snupkg` files are written beneath the repository's shared `artifacts/package/release` directory.
+Packing does not publish either artifact.
+
+## GitHub Actions
+
+The main workflow validates GitHub Actions, formatting, complexity, tests and coverage, semantic-release prediction, the container image, and the contracts package.
+The repository delegates shared behavior to `ArkanisCorporation/ci@v1` and keeps only repository-specific orchestration and complexity checks locally.
+Container and NuGet verification use synthetic versions of the form `0.0.0-ci.<run-number>.<run-attempt>`.
+
+Pull requests run on GitHub-hosted runners.
+Trusted pushes and manual runs may use organization runners.
+Fork pull requests do not receive coverage comments and skip semantic-release prediction that needs write access.
+
+See [GitHub Actions](docs/github-actions.md) for the complete workflow map, trust and permission rules, expected checks, GitHub-hosted verification limits, and intentionally non-executable publication examples.
+
+## Local Workflow Linting
+
+Run Actionlint with the repository configuration before committing workflow changes.
 
 ```powershell
-dotnet husky run --group init
+actionlint -config-file .github/actionlint.yaml
 ```
 
-Run the .NET Aspire agent init task directly only when you need that single task.
-
-```powershell
-dotnet husky run --name dotnet-aspire-agent-init
-```
-
-Run the configured .NET format task manually.
-It formats the solution with `dotnet format Template.slnx --verbosity diagnostic --no-restore`.
-
-```powershell
-dotnet husky run --name dotnet-format
-```
-
-Run the configured .NET format verification task manually.
-It checks the same solution format rules without changing files.
-
-```powershell
-dotnet husky run --name dotnet-format-check
-```
-
-Install Husky hooks in a clone when you want Git to run configured hook commands automatically.
-
-```powershell
-dotnet husky install
-```
-
-Add the configured pre-commit task group to a pre-commit hook when a downstream project wants it to run before each commit.
-The pre-commit group prepares staged shell scripts and verifies .NET formatting without changing files.
-
-```powershell
-dotnet husky add pre-commit -c "dotnet husky run --group pre-commit"
-git add .husky/pre-commit .husky/task-runner.json
-```
-
-### `nektos/act`
-
-[`act`](https://github.com/nektos/act) runs GitHub Actions locally through Docker.
-Use it to validate workflow changes before pushing them to GitHub.
-
-Install Docker and `act` first.
-On Windows, install `act` with Winget or Scoop.
-
-```powershell
-winget install nektos.act
-```
-
-```powershell
-scoop install act
-```
-
-Run the pull request test job locally.
-
-```powershell
-dotnet run --file scripts/act/test-pr.cs
-```
-
-Set `ACT_BIN` when `act` is installed outside your shell `PATH`.
-
-```powershell
-$env:ACT_BIN = "C:\path\to\act.exe"
-dotnet run --file scripts/act/test-pr.cs
-```
-
-Run the `ci` branch push test job locally.
-
-```powershell
-dotnet run --file scripts/act/test-ci.cs
-```
-
-The quality jobs still provide useful local validation through `act`.
-Current `act` versions can fail at `actions/upload-artifact@v7` with a `mime_type` schema error, so GitHub-hosted Actions remain the final verification path for artifact upload and step-summary rendering.
-
-List the jobs that `act` can see.
+Run the pull-request job listing through `act` when `act` and Docker are installed.
 
 ```powershell
 act -l pull_request -W .github/workflows/main.yaml
 ```
 
-The repository `.actrc` contains only low-level runner defaults.
-It maps `arkanis-runners` to an `act`-compatible Ubuntu runner image, not to the plain `ubuntu:latest` Docker image.
-The plain Docker image does not include the Node runtime required by JavaScript actions.
-The file-based C# scripts in [`scripts/act`](scripts/act) keep the human-facing commands named and readable.
-They store local workflow artifacts under `.act/artifacts`.
-Do not store real secrets in committed files.
-Use `.act/secrets` or secure interactive secret prompts for local-only secrets.
-Release and Kubernetes deployment workflows are not full local targets because they depend on GitHub release state, GHCR credentials, Kubernetes credentials, GitHub environments, and runner behavior that `act` does not completely emulate.
-See [GitHub Actions](docs/github-actions.md) for the workflow map, runner trust rules, token permissions, release behavior, deployment behavior, and repository settings checklist.
-Workflow changes are checked by `pipeline-quality.yaml` with actionlint.
-Run `go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12`, add `$(go env GOPATH)/bin` to `PATH`, and then run `actionlint` for the same validation locally.
+`act` is useful for workflow discovery, but GitHub-hosted Actions remain the required verification environment for reusable workflow resolution, permissions, pull-request comments, summaries, and artifact upload behavior.
 
-### `dotnet-setversion`
+## Husky Tasks
 
-[`dotnet-setversion`](https://www.nuget.org/packages/dotnet-setversion/) is available as the local `setversion` tool.
-Use it when a downstream project needs to update project or package versions manually.
+The configured tasks live in [`.husky/task-runner.json`](.husky/task-runner.json).
 
 ```powershell
-dotnet setversion --help
+dotnet husky run --name prepare-shell-scripts
+dotnet husky run --name update-shell-script-permissions
+dotnet husky run --name dotnet-format
+dotnet husky run --name dotnet-format-check
+dotnet husky run --name dotnet-aspire-agent-init
 ```
+
+The pre-commit group prepares staged shell scripts and verifies .NET formatting without modifying source files.
