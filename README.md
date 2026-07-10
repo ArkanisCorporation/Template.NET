@@ -49,7 +49,7 @@ dotnet test Template.slnx --configuration Release --no-build
 ```
 
 Locked restore uses the committed `packages.lock.json` files.
-The AppHost intentionally opts out of solution-wide package lock generation because Aspire generates its project model separately.
+The AppHost intentionally opts out of solution-wide package lock generation because Aspire's SDK and package graph are OS-dependent.
 
 ## Run The Service Directly
 
