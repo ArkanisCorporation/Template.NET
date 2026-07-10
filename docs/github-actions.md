@@ -35,10 +35,11 @@ The caller grants only `contents: read`.
 
 ### `wf-dotnet-test.yml@v1`
 
-The `Coverage` job in `_test.yaml` supplies `global.json`, `Template.slnx`, the optional test filter, optional ReportGenerator settings, and a 20-minute timeout.
-The shared workflow restores, builds, tests, creates coverage artifacts, and reports coverage.
-The caller grants `contents: read` and `pull-requests: write`.
-Coverage comments are enabled only when the event is a pull request whose head repository is this repository.
+The `Coverage` job in `_test.yaml` supplies `global.json`, `Template.slnx`, the optional test filter, optional ReportGenerator settings, `coverage-pr-comment: false`, `upload-coverage: true`, and a 20-minute timeout.
+The shared workflow restores, builds, tests, generates coverage reports, uploads the coverage output with its diagnostics artifact, and appends the Markdown coverage summary to the job summary.
+The caller grants only `contents: read`.
+CI deliberately does not comment on pull requests because repository administrators can enable write tokens for fork pull-request workflows.
+A separately reviewed `pull_request_target` or artifact-reporting lane could be a future opt-in, but no such executable lane exists in this repository.
 
 ### `wf-dotnet-format.yml@v1`
 
@@ -89,7 +90,7 @@ Reusable workflows cannot elevate beyond the permissions supplied by their calle
 
 The workflow and format lanes use `contents: read`.
 The complexity, container verification, and NuGet verification lanes also use only `contents: read`.
-The coverage lane additionally receives `pull-requests: write`, but the `coverage-pr-comment` input is false for fork pull requests.
+The coverage lane also uses only `contents: read`, sets `coverage-pr-comment: false`, and uploads coverage artifacts instead of writing to pull requests.
 The semantic-release verification lane receives `contents: write` only for same-repository pull requests and trusted events, and it cannot publish because it calls the verification workflow.
 
 No executable job declares a publication environment, `id-token: write`, `packages: write`, registry credential, NuGet credential, or deployment credential.

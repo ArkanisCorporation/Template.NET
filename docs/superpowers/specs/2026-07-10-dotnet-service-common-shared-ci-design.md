@@ -168,14 +168,16 @@ The validation graph will contain these lanes.
 
 1. GitHub Actions linting through `wf-lint-github-actions.yml@v1`.
 2. .NET formatting and mandatory JetBrains CleanupCode verification through `wf-dotnet-format.yml@v1`.
-3. Build, test, coverage, artifacts, and same-repository pull-request reporting through `wf-dotnet-test.yml@v1`.
+3. Build, test, coverage report generation, artifact upload, and job-summary reporting through `wf-dotnet-test.yml@v1`.
 4. Repository-specific CA1502 and CA1509 complexity verification using the shared `setup-dotnet` action.
 5. Semantic-release prediction through `wf-verify-release-semantic.yml@v1`.
 6. Container build verification through `wf-verify-publish-container-dotnet.yml@v1`.
 7. NuGet package verification through `wf-verify-publish-nuget.yml@v1`.
 
 The format caller will use the Common pattern and set `install-tool: true` for JetBrains CleanupCode.
-The coverage comment will be disabled for fork pull requests because their tokens are read-only.
+The coverage caller will set `coverage-pr-comment: false` and `upload-coverage: true` on every event.
+Coverage results will remain available through uploaded artifacts and the job summary without granting pull-request write access.
+This remains safe if repository administrators enable write tokens for fork pull-request workflows.
 The container and NuGet verification lanes will use synthetic versions such as `0.0.0-ci.<run-number>.<run-attempt>` so they run on every CI event without depending on a predicted release.
 The NuGet verification lane will set `dotnet-setversion: false`, include sources and symbols, and retain review artifacts for seven days.
 
@@ -189,7 +191,8 @@ No executable workflow will call any of these publication surfaces.
 - A deployment workflow
 
 No release-related executable job will receive `id-token: write`, `packages: write`, publication credentials, or a publication environment.
-Coverage reporting may receive `pull-requests: write` only for same-repository pull requests.
+Coverage reporting will receive only `contents: read` and will never comment on pull requests.
+A separately reviewed `pull_request_target` or artifact-reporting lane may be considered as a future opt-in, but this design does not add one.
 
 The existing local setup action, duplicated test workflow implementation, duplicated release workflow implementation, semantic-release execution scripts, and CitizenId-specific Kubernetes workflows will be removed.
 The semantic-release configuration will retain only metadata-generation plugins accepted by the shared verification workflow.

@@ -538,7 +538,7 @@ Delete the semantic-release execution scripts because `@semantic-release/exec` i
 
 Model `_test.yaml` on Common's wrapper.
 Expose `runner`, `test_filter`, `coverage_custom_settings`, and `concurrency_group_prefix` inputs.
-Call `wf-dotnet-test.yml@v1` for `Template.slnx`, disable pull-request comments on fork pull requests, and call `wf-dotnet-format.yml@v1` with `install-tool: true`.
+Call `wf-dotnet-test.yml@v1` for `Template.slnx`, set `coverage-pr-comment: false` and `upload-coverage: true` on every event, and call `wf-dotnet-format.yml@v1` with `install-tool: true`.
 
 Add one local `complexity` job using `actions/checkout@v7` and `ArkanisCorporation/ci/.github/actions/setup-dotnet@v1`.
 Pass `global-json-file: global.json`, `solution: Template.slnx`, and the matching runner contract.
@@ -649,7 +649,7 @@ State prominently that all executable release lanes are dry-run-only.
 - [ ] **Step 2: Rewrite GitHub Actions documentation**
 
 Document every shared `ci@v1` workflow/action used by the repository.
-Document runner trust, permissions, fork pull-request coverage-comment behavior, synthetic versions, expected required checks, and GitHub-hosted verification limitations.
+Document runner trust, read-only pull-request test permissions, coverage artifact and job-summary reporting without pull-request comments, synthetic versions, expected required checks, and GitHub-hosted verification limitations.
 
 Include non-executable YAML fragments for future semantic-release publication, GHCR publication, and NuGet.org Trusted Publishing.
 Omit complete triggers from those fragments.

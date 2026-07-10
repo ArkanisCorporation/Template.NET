@@ -118,7 +118,9 @@ Container and NuGet verification use synthetic versions of the form `0.0.0-ci.<r
 
 Pull requests run on GitHub-hosted runners.
 Trusted pushes and manual runs may use organization runners.
-Fork pull requests do not receive coverage comments and skip semantic-release prediction that needs write access.
+CI uploads generated coverage reports as workflow artifacts and includes the Markdown coverage summary in the job summary.
+CI deliberately does not comment on pull requests, so the test lanes remain read-only even when repository administrators enable write tokens for fork pull-request workflows.
+Fork pull requests also skip semantic-release prediction that needs write access.
 
 See [GitHub Actions](docs/github-actions.md) for the complete workflow map, trust and permission rules, expected checks, GitHub-hosted verification limits, and intentionally non-executable publication examples.
 

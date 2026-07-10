@@ -24,6 +24,8 @@ Keep GitHub Actions changes reflected in [`README.md`](README.md) or a dedicated
 Workflow and action calls use `ArkanisCorporation/ci@v1` where a shared contract exists.
 Keep every executable workflow verification-only until the operator explicitly approves publication.
 Keep publication examples in documentation intentionally non-executable and omit a complete trigger.
+Keep pull-request validation jobs read-only and publish coverage through artifacts and job summaries.
+Any future workflow that writes coverage results to pull requests requires a separate security review and explicit operator approval.
 
 ## Service Architecture
 

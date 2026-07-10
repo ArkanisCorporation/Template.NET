@@ -37,14 +37,14 @@ jobs:
     uses: ArkanisCorporation/ci/.github/workflows/wf-dotnet-test.yml@v1
     permissions:
       contents: read
-      pull-requests: write
     with:
       runs-on: ${{ inputs.runner }}
       runs-on-self-hosted: ${{ inputs.runner != 'ubuntu-latest' }}
       global-json-file: global.json
       solution: Template.slnx
       test-filter: ${{ inputs.test_filter }}
-      coverage-pr-comment: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      coverage-pr-comment: false
+      upload-coverage: true
       coverage-report-custom-settings: ${{ inputs.coverage_custom_settings }}
       timeout-minutes: 20
 
