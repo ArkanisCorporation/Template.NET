@@ -47,10 +47,10 @@
         <File Path="scripts/update-shell-script-permissions.cs"/>
     </Folder>
     <Folder Name="/src/">
-        <Project Path="src/Template/Template.csproj"/>
+        <Project Path="src/Template.Contracts/Template.Contracts.csproj"/>
+        <Project Path="src/Template.Service/Template.Service.csproj"/>
     </Folder>
     <Folder Name="/tests/">
-        <Project Path="tests/Template.IntegrationTests/Template.IntegrationTests.csproj"/>
-        <Project Path="tests/Template.UnitTests/Template.UnitTests.csproj"/>
+        <Project Path="tests/Template.Service.IntegrationTests/Template.Service.IntegrationTests.csproj"/>
     </Folder>
 </Solution>
