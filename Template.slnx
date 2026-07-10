@@ -47,6 +47,7 @@
         <File Path="scripts/update-shell-script-permissions.cs"/>
     </Folder>
     <Folder Name="/src/">
+        <Project Path="src/Template.AppHost/Template.AppHost.csproj"/>
         <Project Path="src/Template.Contracts/Template.Contracts.csproj"/>
         <Project Path="src/Template.Service/Template.Service.csproj"/>
     </Folder>
