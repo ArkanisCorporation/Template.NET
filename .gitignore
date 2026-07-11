@@ -359,3 +359,6 @@ docker-compose.yaml
 # Local MCP files
 .mcp.json
 mcp.json
+
+# Repository-local downloaded tools
+.tools/
