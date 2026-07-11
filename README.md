@@ -97,6 +97,7 @@ docker image inspect template-service:dry-run
 ```
 
 The multi-stage Dockerfile restores in locked mode, publishes the service in Release, exposes port 8080, and runs as the .NET base image's non-root application user.
+The root `.dockerignore` keeps repository metadata, local tools, automation, documentation, and generated output out of the build context.
 This command creates only a local image and does not authenticate to or push to a registry.
 
 ## Pack The Contracts Locally
@@ -126,11 +127,15 @@ See [GitHub Actions](docs/github-actions.md) for the complete workflow map, trus
 
 ## Local Workflow Linting
 
-Run Actionlint with the repository configuration before committing workflow changes.
+Run the repository-local Actionlint wrapper before committing workflow changes.
+The wrapper downloads Actionlint `1.7.12` directly from its official GitHub release, verifies the pinned archive checksum, and caches the executable beneath ignored `.tools/actionlint`.
+It supports Windows, Linux, and macOS on x64 and ARM64 without a global Actionlint or package-manager installation.
 
 ```powershell
-actionlint -config-file .github/actionlint.yaml
+dotnet run --file scripts/actionlint.cs
 ```
+
+Arguments after `--` replace the default `-config-file .github/actionlint.yaml` arguments when an advanced Actionlint invocation is required.
 
 Run the pull-request job listing through `act` when `act` and Docker are installed.
 

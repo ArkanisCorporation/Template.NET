@@ -106,11 +106,14 @@ Do not make the fork-skipped release dry run a universal fork-required check unl
 
 ## Local And GitHub-Hosted Verification
 
-Run local workflow linting with Actionlint.
+Run local workflow linting with the checksum-pinned repository wrapper.
 
 ```powershell
-actionlint -config-file .github/actionlint.yaml
+dotnet run --file scripts/actionlint.cs
 ```
+
+The wrapper downloads the official Actionlint `1.7.12` archive for Windows, Linux, or macOS on x64 or ARM64.
+It verifies the committed SHA-256 value before extraction and reuses the ignored `.tools/actionlint` cache only when the executable reports the pinned version.
 
 List the pull-request graph locally when `act` and Docker are available.
 

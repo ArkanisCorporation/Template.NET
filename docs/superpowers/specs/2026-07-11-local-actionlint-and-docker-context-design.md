@@ -27,6 +27,7 @@ The runner will reject an archive before extraction when its digest does not mat
 
 Downloaded archives and extracted binaries will live beneath ignored `.tools/actionlint/1.7.12/<runtime>/` paths.
 A valid cache entry will be reused after the runner confirms the executable reports the pinned version.
+Cold-cache acquisition will use a version-and-runtime-scoped cross-process lock with a bounded cancellable wait and a cache recheck after lock acquisition.
 An unsupported operating system or architecture will fail with a concise diagnostic listing the supported combinations.
 
 ## Repository Script

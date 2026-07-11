@@ -601,7 +601,7 @@ Do not add any publishing, backpropagation, or deployment job.
 Run:
 
 ```powershell
-rtk actionlint -config-file .github/actionlint.yaml
+rtk dotnet run --file scripts/actionlint.cs
 rtk git grep -n -E "wf-release-semantic\.yml|wf-publish-container-dotnet\.yml|wf-publish-nuget\.yml|NuGet/login|dotnet-publish-nuget|id-token: write|packages: write" -- .github/workflows
 ```
 
@@ -680,7 +680,7 @@ rtk dotnet build Template.slnx --configuration Release --no-restore --verbosity 
 rtk dotnet test Template.slnx --configuration Release --no-build
 rtk dotnet pack src/Template.Contracts/Template.Contracts.csproj --configuration Release --no-restore --include-symbols --include-source -p:PackageVersion=0.0.0-ci.1.1
 rtk docker build --file src/Template.Service/Dockerfile --tag template-service:dry-run .
-rtk actionlint -config-file .github/actionlint.yaml
+rtk dotnet run --file scripts/actionlint.cs
 rtk git diff --check
 ```
 

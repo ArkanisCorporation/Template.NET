@@ -49,6 +49,7 @@ Executable file-based script entries start with `#!/usr/bin/env -S dotnet --`, f
 Use `#:include` for shared script logic.
 Use `CliWrap` through the shared native-command helpers for native command execution.
 Use `LibGit2Sharp` through the shared repository helpers for Git repository, status, blob, and index operations.
+Run workflow linting through `dotnet run --file scripts/actionlint.cs` so the repository downloads and checksum-verifies its pinned cross-platform Actionlint binary.
 When a file-based script name contains characters that are awkward for generated assembly names, set an explicit `#:property AssemblyName=...`.
 Public and internal script helper APIs and custom exceptions require XML docs that state behavior, preconditions, side effects, and thrown exceptions.
 
