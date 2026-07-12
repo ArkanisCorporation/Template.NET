@@ -29,25 +29,5 @@ export default {
         "@semantic-release/commit-analyzer",
         "@semantic-release/release-notes-generator",
         "@semantic-release/github",
-        [
-            "@semantic-release/exec",
-            {
-                verifyReleaseCmd:
-                    "VERSION=${nextRelease.version} " +
-                    "VERSION_TAG=${nextRelease.gitTag} " +
-                    "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "dotnet run --file ./scripts/semantic-release/100-verify/verify.cs",
-                prepareCmd:
-                    "VERSION=${nextRelease.version} " +
-                    "VERSION_TAG=${nextRelease.gitTag} " +
-                    "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "dotnet run --file ./scripts/semantic-release/200-prepare/prepare.cs",
-                publishCmd:
-                    "VERSION=${nextRelease.version} " +
-                    "VERSION_TAG=${nextRelease.gitTag} " +
-                    "VERSION_CHANNEL=${nextRelease.channel} " +
-                    "dotnet run --file ./scripts/semantic-release/300-publish/publish.cs",
-            },
-        ],
     ],
 };
