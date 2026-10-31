@@ -30,8 +30,8 @@ jobs:
     permissions:
       contents: read
     with:
-      runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
-      runs-on-self-hosted: ${{ (github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus') != 'ubuntu-latest' }}
+      runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
+      runs-on-self-hosted: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus') != 'ubuntu-latest' }}
 
   test:
     name: Tests
@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: read
     with:
-      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
+      runner: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
 
   release-dry-run:
     name: "Dry Run: Release"
@@ -49,7 +49,7 @@ jobs:
     permissions:
       contents: write
     with:
-      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
+      runner: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
 
   container-dry-run:
     name: "Dry Run: Container"
@@ -58,7 +58,7 @@ jobs:
     permissions:
       contents: read
     with:
-      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
+      runner: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
       version: 0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}
 
   nuget-dry-run:
@@ -68,5 +68,5 @@ jobs:
     permissions:
       contents: read
     with:
-      runner: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
+      runner: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || inputs.runner || vars.RUNNER_DEFAULT || 'daedalus' }}
       version: 0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}
