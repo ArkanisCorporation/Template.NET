@@ -117,8 +117,8 @@ The main workflow validates GitHub Actions, formatting, complexity, tests and co
 The repository delegates shared behavior to `ArkanisCorporation/ci@v1` and keeps only repository-specific orchestration and complexity checks locally.
 Container and NuGet verification use synthetic versions of the form `0.0.0-ci.<run-number>.<run-attempt>`.
 
-Pull requests run on GitHub-hosted runners.
-Trusted pushes and manual runs may use organization runners.
+Pull requests from forks run on GitHub-hosted runners.
+Same-repository pull requests, trusted pushes, and manual runs use organization runners.
 CI uploads generated coverage reports as workflow artifacts and includes the Markdown coverage summary in the job summary.
 CI deliberately does not comment on pull requests, so the test lanes remain read-only even when repository administrators enable write tokens for fork pull-request workflows.
 Fork pull requests also skip semantic-release prediction that needs write access.

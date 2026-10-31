@@ -73,15 +73,17 @@ The caller grants only `contents: read`.
 
 ## Runner Trust
 
-Untrusted pull-request code always runs on `ubuntu-latest`.
-This rule prevents fork or contributor code from executing on persistent organization runners.
+Pull requests from forks always run on `ubuntu-latest`.
+This rule prevents code from outside the repository from executing on persistent organization runners.
+The entry workflow detects a fork by comparing `github.event.pull_request.head.repo.full_name` with `github.repository`.
 
-Trusted pushes, manual dispatches, and repository dispatches select the manual `runner` input, `RUNNER_DEFAULT`, or `daedalus` in that order.
+Pull requests from branches of this repository, trusted pushes, manual dispatches, and repository dispatches select the manual `runner` input, `RUNNER_DEFAULT`, or `daedalus` in that order.
+Pull requests have no manual input, so same-repository pull requests use `RUNNER_DEFAULT` or `daedalus`.
 The supported manual choices are `daedalus`, `arkanis-runners`, and `ubuntu-latest`.
 Every shared caller keeps `runs-on-self-hosted` consistent with the selected runner.
 
-Do not weaken the pull-request runner expression when customizing this template.
-Public downstream repositories must keep untrusted code away from self-hosted runners and their network boundary.
+Do not weaken the fork check in the pull-request runner expression when customizing this template.
+Public downstream repositories must keep fork code away from self-hosted runners and their network boundary.
 
 ## Permissions And Fork Behavior
 
